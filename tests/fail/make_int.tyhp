@@ -1,8 +1,0 @@
-<?tyhp
-
-namespace OverlayTests\FlareFail;
-
-function make_rejects_int(): \Spatie\FlareClient\Flare
-{
-    return \Spatie\FlareClient\Flare::make(1);
-}
