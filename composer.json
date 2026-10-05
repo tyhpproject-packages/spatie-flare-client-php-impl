@@ -8,7 +8,7 @@
     ],
     "type": "library",
     "license": "Apache-2.0",
-    "version": "2.10.2.0",
+    "version": "3.5.1.0",
     "minimum-stability": "dev",
     "prefer-stable": true,
     "extra": {
@@ -17,12 +17,8 @@
             "php-version": ">=8.2",
             "require": {
                 "tyhpdef/php": "@dev",
-                "tyhpdef/spatie-error-solutions": "@dev",
                 "tyhpdef/spatie-backtrace": "@dev",
-                "tyhpdef/symfony-http-foundation": "@dev",
                 "tyhpdef/psr-container": "@dev",
-                "tyhpdef/symfony-var-dumper": "@dev",
-                "tyhpdef/guzzlehttp-guzzle": "@dev",
                 "tyhpdef/php-ext-curl": "@dev"
             },
             "package": {
@@ -40,16 +36,12 @@
     },
     "require": {
         "php": ">=8.2",
-        "spatie/flare-client-php": "2.10.2"
+        "spatie/flare-client-php": "3.5.1"
     },
     "require-dev": {
         "tyhpdef/php": "@dev",
-        "tyhpdef/spatie-error-solutions": "@dev",
         "tyhpdef/spatie-backtrace": "@dev",
-        "tyhpdef/symfony-http-foundation": "@dev",
         "tyhpdef/psr-container": "@dev",
-        "tyhpdef/symfony-var-dumper": "@dev",
-        "tyhpdef/guzzlehttp-guzzle": "@dev",
         "tyhpdef/php-ext-curl": "@dev"
     }
 }

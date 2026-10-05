@@ -7,124 +7,64 @@ namespace Spatie\FlareClient {
     class Api {
         public const string BASE_URL ?? 'https://ingress.flareapp.io';
         /**
-        * @var array<int, Report>
+        * @var array<int, mixed>
         * @generated
         */
-        protected array<int, \Spatie\FlareClient\Report> $reportQueue ?? [];
+        protected array<int, mixed> $reportQueue ?? [];
         /**
-        * @var array<int, array>
+        * @var array<int, mixed>
         * @generated
         */
-        protected array<int, array> $traceQueue ?? [];
+        protected array<int, mixed> $traceQueue ?? [];
+        /**
+        * @var array<int, mixed>
+        * @generated
+        */
+        protected array<int, mixed> $logQueue ?? [];
         protected string $apiToken;
         protected string $baseUrl;
-        protected \Spatie\FlareClient\Senders\Sender $sender;
-        protected bool $sendReportsImmediately ?? false;
-        public function __construct(string $apiToken, string $baseUrl, \Spatie\FlareClient\Senders\Sender $sender = null, bool $sendReportsImmediately = false): void;
-        public function sendReportsImmediately(bool $sendReportsImmediately = true): self;
-        public function report(\Spatie\FlareClient\Report $report, bool $immediately = false): void;
-        public function trace(array $trace, bool $immediately = false): void;
-        public function test(\Spatie\FlareClient\Report $report): void;
-        public function testTrace(array $trace): void;
-        protected function addReportToQueue(\Spatie\FlareClient\Report $report): self;
-        protected function addTraceToQueue(array $trace): self;
-        public function sendQueue(bool $reports = true, bool $traces = true): void;
-        protected function sendReportToApi(\Spatie\FlareClient\Report $report, bool $isTest = false): void;
-        protected function sendTraceToApi(array $trace): void;
-        protected function post(string $endpoint, array $payload, \Spatie\FlareClient\Enums\FlarePayloadType $type): void;
-        /**
-        * @param array<int|string, mixed> $payload
-        * @return array<int|string, mixed>
-        * @generated
-        */
-        protected function truncateReport(array<int|string, mixed> $payload): array<int|string, mixed>;
-    }
-    class Flare {
-        protected mixed $previousExceptionHandler ?? null;
-        protected mixed $previousErrorHandler ?? null;
-        protected readonly \Spatie\FlareClient\Api $api;
-        public readonly \Spatie\FlareClient\Tracer $tracer;
-        public readonly \Spatie\FlareClient\Support\BackTracer $backTracer;
-        protected readonly \Spatie\FlareClient\Support\Ids $ids;
-        protected readonly \Spatie\FlareClient\Time\Time $time;
-        protected readonly \Spatie\FlareClient\Support\SentReports $sentReports;
-        protected readonly array<int, \Spatie\FlareClient\FlareMiddleware\FlareMiddleware> $middleware;
-        protected readonly array<string, \Spatie\FlareClient\Contracts\Recorders\Recorder> $recorders;
-        protected readonly ?\Spatie\FlareClient\Recorders\ErrorRecorder\ErrorRecorder $throwableRecorder;
-        public readonly \Spatie\FlareClient\Recorders\ContextRecorder\ContextRecorder $contextRecorder;
-        protected readonly ?int $reportErrorLevels;
-        protected null|\Closure $filterExceptionsCallable;
-        protected null|\Closure $filterReportsCallable;
-        protected readonly \Spatie\ErrorSolutions\Contracts\SolutionProviderRepository $solutionProviderRepository;
-        protected readonly null|\Spatie\Backtrace\Arguments\ArgumentReducers $argumentReducers;
-        protected readonly bool $collectStackFrameArguments;
+        protected \Spatie\FlareClient\Exporters\Exporter $exporter;
         protected resource $resource;
         protected \Spatie\FlareClient\Scopes\Scope $scope;
-        protected \Spatie\FlareClient\Support\StacktraceMapper $stacktraceMapper;
-        protected ?string $applicationPath;
-        protected array<string, \Spatie\FlareClient\Enums\OverriddenGrouping> $overriddenGroupings;
-        protected bool $includeStackTraceWithMessages;
+        protected \Spatie\FlareClient\Senders\Sender $sender;
+        protected bool $disableQueue;
+        public function __construct(string $apiToken, string $baseUrl, \Spatie\FlareClient\Exporters\Exporter $exporter, resource $resource, \Spatie\FlareClient\Scopes\Scope $scope, \Spatie\FlareClient\Senders\Sender $sender, bool $disableQueue): void;
+        public function report(\Spatie\FlareClient\ReportFactory $report, bool $immediately = false, bool $test = false): array;
         /**
-        * @param array<int, \Spatie\FlareClient\FlareMiddleware\FlareMiddleware> $middleware
-        * @param array<string, \Spatie\FlareClient\Contracts\Recorders\Recorder> $recorders
-        * @param null|\Closure $filterExceptionsCallable
-        * @param null|\Closure $filterReportsCallable
-        * @param null|\Spatie\Backtrace\Arguments\ArgumentReducers $argumentReducers
-        * @param array<string, \Spatie\FlareClient\Enums\OverriddenGrouping> $overriddenGroupings
+        * @param array<int, \Spatie\FlareClient\Spans\Span> $spans
         * @generated
         */
-        public function __construct(\Spatie\FlareClient\Api $api, \Spatie\FlareClient\Tracer $tracer, \Spatie\FlareClient\Support\BackTracer $backTracer, \Spatie\FlareClient\Support\Ids $ids, \Spatie\FlareClient\Time\Time $time, \Spatie\FlareClient\Support\SentReports $sentReports, array<int, \Spatie\FlareClient\FlareMiddleware\FlareMiddleware> $middleware, array<string, \Spatie\FlareClient\Contracts\Recorders\Recorder> $recorders, ?\Spatie\FlareClient\Recorders\ErrorRecorder\ErrorRecorder $throwableRecorder, \Spatie\FlareClient\Recorders\ContextRecorder\ContextRecorder $contextRecorder, ?int $reportErrorLevels, null|\Closure $filterExceptionsCallable, null|\Closure $filterReportsCallable, \Spatie\ErrorSolutions\Contracts\SolutionProviderRepository $solutionProviderRepository, null|\Spatie\Backtrace\Arguments\ArgumentReducers $argumentReducers, bool $collectStackFrameArguments, resource $resource, \Spatie\FlareClient\Scopes\Scope $scope, \Spatie\FlareClient\Support\StacktraceMapper $stacktraceMapper, ?string $applicationPath, array<string, \Spatie\FlareClient\Enums\OverriddenGrouping> $overriddenGroupings, bool $includeStackTraceWithMessages): void;
+        public function trace(array<int, \Spatie\FlareClient\Spans\Span> $spans, bool $immediately = false, bool $test = false): array;
+        public function log(array $logs, bool $immediately = false, bool $test = false): array;
+        public function sendQueue(): void;
+        protected function sendEntity(\Spatie\FlareClient\Enums\FlareEntityType $type, mixed $payload, bool $immediately, bool $test = false): void;
+    }
+    class Flare {
+        public readonly \Spatie\FlareClient\Support\Lifecycle $lifecycle;
+        public readonly \Spatie\FlareClient\Tracer $tracer;
+        public readonly \Spatie\FlareClient\Logger $logger;
+        public readonly \Spatie\FlareClient\Reporter $reporter;
+        public readonly \Spatie\FlareClient\Support\BackTracer $backTracer;
+        public readonly \Spatie\FlareClient\Support\Ids $ids;
+        public readonly \Spatie\FlareClient\Time\Time $time;
+        public readonly \Spatie\FlareClient\Support\SentReports $sentReports;
+        protected resource $resource;
+        protected \Spatie\FlareClient\Scopes\Scope $scope;
+        protected \Spatie\FlareClient\Support\Recorders $recorders;
+        public function __construct(\Spatie\FlareClient\Support\Lifecycle $lifecycle, \Spatie\FlareClient\Tracer $tracer, \Spatie\FlareClient\Logger $logger, \Spatie\FlareClient\Reporter $reporter, \Spatie\FlareClient\Support\BackTracer $backTracer, \Spatie\FlareClient\Support\Ids $ids, \Spatie\FlareClient\Time\Time $time, \Spatie\FlareClient\Support\SentReports $sentReports, resource $resource, \Spatie\FlareClient\Scopes\Scope $scope, \Spatie\FlareClient\Support\Recorders $recorders): void;
         public static function make(string|\Spatie\FlareClient\FlareConfig $apiToken): self;
+        public function start(?int $timeUnixNano = null, array $attributes = [], ?string $traceparent = null): self;
+        public function end(?int $timeUnixNano = null, array $additionalTerminationAttributes = [], array $additionalApplicationAttributes = []): void;
         public function registerFlareHandlers(): self;
         public function registerExceptionHandler(): self;
         public function registerErrorHandler(?int $errorLevels = null): self;
-        public function bootRecorders(): self;
-        public function tracer(): \Spatie\FlareClient\Tracer;
-        public function backTracer(): \Spatie\FlareClient\Support\BackTracer;
-        public function application(): \Spatie\FlareClient\Recorders\ApplicationRecorder\ApplicationRecorder;
-        public function cache(): \Spatie\FlareClient\Recorders\CacheRecorder\CacheRecorder|null;
-        public function command(): \Spatie\FlareClient\Recorders\CommandRecorder\CommandRecorder|null;
-        public function externalHttp(): \Spatie\FlareClient\Recorders\ExternalHttpRecorder\ExternalHttpRecorder|null;
-        public function filesystem(): \Spatie\FlareClient\Recorders\FilesystemRecorder\FilesystemRecorder|null;
-        public function glow(): \Spatie\FlareClient\Recorders\GlowRecorder\GlowRecorder|null;
-        public function log(): \Spatie\FlareClient\Recorders\LogRecorder\LogRecorder|null;
-        public function query(): \Spatie\FlareClient\Recorders\QueryRecorder\QueryRecorder|null;
-        public function redisCommand(): \Spatie\FlareClient\Recorders\RedisCommandRecorder\RedisCommandRecorder|null;
-        public function request(): \Spatie\FlareClient\Recorders\RequestRecorder\RequestRecorder|null;
-        public function response(): \Spatie\FlareClient\Recorders\ResponseRecorder\ResponseRecorder|null;
-        public function routing(): \Spatie\FlareClient\Recorders\RoutingRecorder\RoutingRecorder|null;
-        public function transaction(): \Spatie\FlareClient\Recorders\TransactionRecorder\TransactionRecorder|null;
-        public function view(): \Spatie\FlareClient\Recorders\ViewRecorder\ViewRecorder|null;
-        public function recorder(\Spatie\FlareClient\Enums\RecorderType|string $type): \Spatie\FlareClient\Contracts\Recorders\Recorder|null;
-        public function handleException(\Throwable $throwable): void;
-        public function handleError(mixed $code, string $message, string $file = '', int $line = 0): void;
         /**
-        * @param callable $callback
+        * @param ?\Closure $callback
         * @generated
         */
-        public function report(\Throwable $throwable, callable $callback = null, ?bool $handled = null): ?\Spatie\FlareClient\Report;
-        public function createReport(\Throwable $throwable, ?callable $callback = null, ?bool $handled = null): \Spatie\FlareClient\Report;
-        public function reportHandled(\Throwable $throwable): ?\Spatie\FlareClient\Report;
-        protected function shouldSendReport(\Throwable $throwable): bool;
-        /**
-        * @param callable $callback
-        * @generated
-        */
-        public function reportMessage(string $message, string $logLevel, callable $callback = null): \Spatie\FlareClient\Report;
-        public function sendTestReport(\Throwable $throwable): void;
-        public function sendTestTrace(array $trace): void;
-        protected function replaceTimestamps(array $data): array;
-        protected function replaceResourceAttributes(array $trace): array;
-        protected function replaceTraceIds(array $trace): array;
-        protected function sendReportToApi(\Spatie\FlareClient\Report $report): void;
-        public function withApplicationVersion(string|\Closure $version): self;
-        public function withApplicationName(string|\Closure $name): self;
-        public function withApplicationStage(string|\Closure $stage): self;
-        /**
-        * @param class-string<HasSolutionsForThrowable> $ ...$solutionProviders
-        * @generated
-        */
-        public function withSolutionProvider(string ...$solutionProviders): self;
+        public function report(\Throwable $throwable, ?\Closure $callback = null, ?bool $handled = null): ?\Spatie\FlareClient\ReportFactory;
+        public function createReport(\Throwable $throwable, ?\Closure $callback = null, ?bool $handled = null): \Spatie\FlareClient\ReportFactory;
+        public function reportHandled(\Throwable $throwable): ?\Spatie\FlareClient\ReportFactory;
         /**
         * @param \Closure $filterExceptionsCallable
         * @generated
@@ -135,75 +75,81 @@ namespace Spatie\FlareClient {
         * @generated
         */
         public function filterReportsUsing(\Closure $filterReportsCallable): static;
-        public function sendReportsImmediately(bool $sendReportsImmediately = true): self;
-        public function context(string|array $key, mixed $value = null): self;
-        public function reset(bool $reports = true, bool $traces = true, bool $clearCustomContext = true): void;
+        public function cache(): \Spatie\FlareClient\Recorders\CacheRecorder\CacheRecorder|null;
+        public function command(): \Spatie\FlareClient\Recorders\CommandRecorder\CommandRecorder|null;
+        public function externalHttp(): \Spatie\FlareClient\Recorders\ExternalHttpRecorder\ExternalHttpRecorder|null;
+        public function filesystem(): \Spatie\FlareClient\Recorders\FilesystemRecorder\FilesystemRecorder|null;
+        public function glow(): \Spatie\FlareClient\Recorders\GlowRecorder\GlowRecorder|null;
         public function sentReports(): \Spatie\FlareClient\Support\SentReports;
-        protected function resetRecorders(): void;
-        /**
-        * @param callable $callback
-        * @generated
-        */
-        protected function feedReportFactory(\Spatie\FlareClient\ReportFactory $factory, callable $callback): \Spatie\FlareClient\ReportFactory;
+        public function log(): \Spatie\FlareClient\Logger;
+        public function query(): \Spatie\FlareClient\Recorders\QueryRecorder\QueryRecorder|null;
+        public function redisCommand(): \Spatie\FlareClient\Recorders\RedisCommandRecorder\RedisCommandRecorder|null;
+        public function request(): \Spatie\FlareClient\Recorders\RequestRecorder\RequestRecorder|null;
+        public function job(): \Spatie\FlareClient\Recorders\JobRecorder\JobRecorder|null;
+        public function queue(): \Spatie\FlareClient\Recorders\QueueRecorder\QueueRecorder|null;
+        public function response(): \Spatie\FlareClient\Recorders\ResponseRecorder\ResponseRecorder|null;
+        public function routing(): \Spatie\FlareClient\Recorders\RoutingRecorder\RoutingRecorder|null;
+        public function transaction(): \Spatie\FlareClient\Recorders\TransactionRecorder\TransactionRecorder|null;
+        public function view(): \Spatie\FlareClient\Recorders\ViewRecorder\ViewRecorder|null;
+        public function recorder(\Spatie\FlareClient\Enums\RecorderType|string $type): \Spatie\FlareClient\Contracts\Recorders\Recorder|null;
+        public function withApplicationVersion(string|\Closure $version): self;
+        public function withApplicationName(string|\Closure $name): self;
+        public function withApplicationStage(string|\Closure $stage): self;
+        public function context(string|array $key, mixed $value = null): self;
     }
     class FlareConfig {
         public ?string $apiToken ?? null;
         public string $baseUrl ?? \Spatie\FlareClient\Api::BASE_URL;
-        public bool $sendReportsImmediately ?? false;
         public array<string, array> $collects ?? [];
-        public ?int $reportErrorLevels ?? null;
-        public ?\Closure $filterExceptionsCallable ?? null;
-        public ?\Closure $filterReportsCallable ?? null;
         public ?string $applicationPath ?? null;
         public string $applicationName ?? 'PHP application';
         public ?string $applicationVersion ?? null;
         public ?string $applicationStage ?? null;
-        public string $sender ?? \Spatie\FlareClient\Senders\CurlSender::class;
-        public array $senderConfig ?? [];
-        public string $solutionsProviderRepository ?? \Spatie\ErrorSolutions\SolutionProviderRepository::class;
-        public bool $trace ?? false;
-        public string $sampler ?? \Spatie\FlareClient\Sampling\RateSampler::class;
-        public array $samplerConfig ?? [];
-        public ?\Spatie\FlareClient\Support\TraceLimits $traceLimits ?? null;
-        public ?\Closure $configureScopeCallable ?? null;
-        public ?\Closure $configureResourceCallable ?? null;
-        public ?\Closure $configureSpansCallable ?? null;
-        public ?\Closure $configureSpanEventsCallable ?? null;
         public bool $censorClientIps ?? false;
         public array<string> $censorHeaders ?? [];
         public array<string> $censorBodyFields ?? [];
         public bool $censorCookies ?? false;
         public bool $censorSession ?? false;
-        public string $userAttributesProvider ?? \Spatie\FlareClient\AttributesProviders\EmptyUserAttributesProvider::class;
-        public string $requestAttributesProvider ?? \Spatie\FlareClient\AttributesProviders\RequestAttributesProvider::class;
-        public string $consoleAttributesProvider ?? \Spatie\FlareClient\AttributesProviders\ConsoleAttributesProvider::class;
-        public string $traceExporter ?? \Spatie\FlareClient\TraceExporters\OpenTelemetryJsonTraceExporter::class;
-        public string $stacktraceMapper ?? \Spatie\FlareClient\Support\StacktraceMapper::class;
+        public bool $report ?? true;
+        public ?int $reportErrorLevels ?? null;
+        public ?\Closure $filterExceptionsCallable ?? null;
+        public ?\Closure $filterReportsCallable ?? null;
+        public array<string, \Spatie\FlareClient\Enums\OverriddenGrouping> $overriddenGroupings ?? [];
+        public bool $trace ?? true;
+        public array|null $traceLimits ?? null;
+        public ?\Closure $configureScopeCallable ?? null;
+        public ?\Closure $configureResourceCallable ?? null;
+        public ?\Closure $configureSpansCallable ?? null;
+        public ?\Closure $configureSpanEventsCallable ?? null;
+        public bool $log ?? false;
+        public ?\Monolog\Level $minimalLogLevel ?? null;
+        public string $sender ?? \Spatie\FlareClient\Senders\CurlSender::class;
+        public array $senderConfig ?? [];
+        public string $sampler ?? \Spatie\FlareClient\Sampling\RateSampler::class;
+        public array $samplerConfig ?? [];
+        public string $exporter ?? \Spatie\FlareClient\Exporters\OpenTelemetryJsonExporter::class;
         public string $collectsResolver ?? \Spatie\FlareClient\Support\CollectsResolver::class;
         public string $ids ?? \Spatie\FlareClient\Support\Ids::class;
         public string $time ?? \Spatie\FlareClient\Time\SystemTime::class;
-        public array<string, \Spatie\FlareClient\Enums\OverriddenGrouping> $overriddenGroupings ?? [];
-        public bool $includeStackTraceWithMessages ?? false;
+        public string $memory ?? \Spatie\FlareClient\Memory\SystemMemory::class;
+        public string $api ?? \Spatie\FlareClient\Api::class;
         /**
         * @param ?\Closure $filterExceptionsCallable
         * @param ?\Closure $filterReportsCallable
         * @param array<string, array> $collects
         * @param string $sender
-        * @param string $solutionsProviderRepository
+        * @param array|null $traceLimits
         * @param ?\Closure $configureScopeCallable
         * @param ?\Closure $configureResourceCallable
         * @param ?\Closure $configureSpansCallable
         * @param ?\Closure $configureSpanEventsCallable
         * @param array<string> $censorHeaders
         * @param array<string> $censorBodyFields
-        * @param string $userAttributesProvider
-        * @param string $requestAttributesProvider
-        * @param string $consoleAttributesProvider
         * @param array<string, \Spatie\FlareClient\Enums\OverriddenGrouping> $overriddenGroupings
         * @param string $collectsResolver
         * @generated
         */
-        public function __construct(?string $apiToken = null, string $baseUrl = \Spatie\FlareClient\Api::BASE_URL, bool $sendReportsImmediately = false, array<string, array> $collects = [], ?int $reportErrorLevels = null, ?\Closure $filterExceptionsCallable = null, ?\Closure $filterReportsCallable = null, ?string $applicationPath = null, string $applicationName = 'PHP application', ?string $applicationVersion = null, ?string $applicationStage = null, string $sender = \Spatie\FlareClient\Senders\CurlSender::class, array $senderConfig = [], string $solutionsProviderRepository = \Spatie\ErrorSolutions\SolutionProviderRepository::class, bool $trace = false, string $sampler = \Spatie\FlareClient\Sampling\RateSampler::class, array $samplerConfig = [], ?\Spatie\FlareClient\Support\TraceLimits $traceLimits = null, ?\Closure $configureScopeCallable = null, ?\Closure $configureResourceCallable = null, ?\Closure $configureSpansCallable = null, ?\Closure $configureSpanEventsCallable = null, bool $censorClientIps = false, array<string> $censorHeaders = [], array<string> $censorBodyFields = [], bool $censorCookies = false, bool $censorSession = false, string $userAttributesProvider = \Spatie\FlareClient\AttributesProviders\EmptyUserAttributesProvider::class, string $requestAttributesProvider = \Spatie\FlareClient\AttributesProviders\RequestAttributesProvider::class, string $consoleAttributesProvider = \Spatie\FlareClient\AttributesProviders\ConsoleAttributesProvider::class, string $traceExporter = \Spatie\FlareClient\TraceExporters\OpenTelemetryJsonTraceExporter::class, string $stacktraceMapper = \Spatie\FlareClient\Support\StacktraceMapper::class, string $collectsResolver = \Spatie\FlareClient\Support\CollectsResolver::class, string $ids = \Spatie\FlareClient\Support\Ids::class, string $time = \Spatie\FlareClient\Time\SystemTime::class, array<string, \Spatie\FlareClient\Enums\OverriddenGrouping> $overriddenGroupings = [], bool $includeStackTraceWithMessages = false): void;
+        public function __construct(?string $apiToken = null, string $baseUrl = \Spatie\FlareClient\Api::BASE_URL, array<string, array> $collects = [], ?string $applicationPath = null, string $applicationName = 'PHP application', ?string $applicationVersion = null, ?string $applicationStage = null, bool $censorClientIps = false, array<string> $censorHeaders = [], array<string> $censorBodyFields = [], bool $censorCookies = false, bool $censorSession = false, bool $report = true, ?int $reportErrorLevels = null, ?\Closure $filterExceptionsCallable = null, ?\Closure $filterReportsCallable = null, array<string, \Spatie\FlareClient\Enums\OverriddenGrouping> $overriddenGroupings = [], bool $trace = true, array|null $traceLimits = null, ?\Closure $configureScopeCallable = null, ?\Closure $configureResourceCallable = null, ?\Closure $configureSpansCallable = null, ?\Closure $configureSpanEventsCallable = null, bool $log = false, ?\Monolog\Level $minimalLogLevel = null, string $sender = \Spatie\FlareClient\Senders\CurlSender::class, array $senderConfig = [], string $sampler = \Spatie\FlareClient\Sampling\RateSampler::class, array $samplerConfig = [], string $exporter = \Spatie\FlareClient\Exporters\OpenTelemetryJsonExporter::class, string $collectsResolver = \Spatie\FlareClient\Support\CollectsResolver::class, string $ids = \Spatie\FlareClient\Support\Ids::class, string $time = \Spatie\FlareClient\Time\SystemTime::class, string $memory = \Spatie\FlareClient\Memory\SystemMemory::class, string $api = \Spatie\FlareClient\Api::class): void;
         public static function make(string $apiToken): static;
         public function censorClientIps(bool $censorClientIps = true): static;
         public function censorHeaders(string ...$headers): static;
@@ -211,26 +157,44 @@ namespace Spatie\FlareClient {
         public function censorCookies(bool $censorCookies = true): static;
         public function censorSession(bool $censorSession = true): static;
         public function useDefaults(): static;
-        public static function defaultSolutionProviders(): array;
         public static function defaultArgumentReducers(): array;
-        public function collectRequests(array $extra = []): static;
+        /**
+        * @param array<int, string> $ignoredRoutes
+        * @param array<int, string> $ignoredUrls
+        * @param array<int, string> $ignoredPaths
+        * @generated
+        */
+        public function collectRequests(array<int, string> $ignoredRoutes = [], array<int, string> $ignoredUrls = [], array<int, string> $ignoredPaths = [], array $extra = []): static;
         public function ignoreRequests(): static;
-        public function collectCommands(bool $withTraces = \Spatie\FlareClient\Recorders\CommandRecorder\CommandRecorder::DEFAULT_WITH_TRACES, bool $withErrors = \Spatie\FlareClient\Recorders\CommandRecorder\CommandRecorder::DEFAULT_WITH_ERRORS, ?int $maxItemsWithErrors = \Spatie\FlareClient\Recorders\CommandRecorder\CommandRecorder::DEFAULT_MAX_ITEMS_WITH_ERRORS, array $extra = []): static;
+        /**
+        * @param array<int, string> $ignoredCommands
+        * @param array<int, string> $ignoredClasses
+        * @generated
+        */
+        public function collectCommands(bool $withTraces = \Spatie\FlareClient\Recorders\CommandRecorder\CommandRecorder::DEFAULT_WITH_TRACES, bool $withErrors = \Spatie\FlareClient\Recorders\CommandRecorder\CommandRecorder::DEFAULT_WITH_ERRORS, ?int $maxItemsWithErrors = \Spatie\FlareClient\Recorders\CommandRecorder\CommandRecorder::DEFAULT_MAX_ITEMS_WITH_ERRORS, array<int, string> $ignoredCommands = [], array<int, string> $ignoredClasses = [], array $extra = []): static;
         public function ignoreCommands(): static;
-        public function collectGitInfo(bool $useProcess = \Spatie\FlareClient\FlareMiddleware\AddGitInformation::DEFAULT_USE_PROCESS, array $extra = []): static;
+        /**
+        * @param array<int, string> $ignoredClasses
+        * @generated
+        */
+        public function collectJobs(bool $withTraces = \Spatie\FlareClient\Recorders\JobRecorder\JobRecorder::DEFAULT_WITH_TRACES, bool $withErrors = \Spatie\FlareClient\Recorders\JobRecorder\JobRecorder::DEFAULT_WITH_ERRORS, ?int $maxItemsWithErrors = \Spatie\FlareClient\Recorders\JobRecorder\JobRecorder::DEFAULT_MAX_ITEMS_WITH_ERRORS, array<int, string> $ignoredClasses = [], array $extra = []): static;
+        public function ignoreJobs(): static;
+        public function collectGitInfo(bool $useProcess = resource::DEFAULT_GIT_USE_PROCESS, bool|\Spatie\FlareClient\Enums\FlareEntityType|array $entityTypes = resource::DEFAULT_GIT_ENTITY_TYPES, array $extra = []): static;
         public function ignoreGitInfo(): static;
-        public function collectCacheEvents(bool $withTraces = \Spatie\FlareClient\Recorders\CacheRecorder\CacheRecorder::DEFAULT_WITH_TRACES, bool $withErrors = \Spatie\FlareClient\Recorders\CacheRecorder\CacheRecorder::DEFAULT_WITH_ERRORS, ?int $maxItemsWithErrors = \Spatie\FlareClient\Recorders\CacheRecorder\CacheRecorder::DEFAULT_MAX_ITEMS_WITH_ERRORS, array $operations = \Spatie\FlareClient\Recorders\CacheRecorder\CacheRecorder::DEFAULT_OPERATIONS, array $extra = []): static;
+        /**
+        * @param array<int, string> $ignoredKeys
+        * @generated
+        */
+        public function collectCacheEvents(bool $withTraces = \Spatie\FlareClient\Recorders\CacheRecorder\CacheRecorder::DEFAULT_WITH_TRACES, bool $withErrors = \Spatie\FlareClient\Recorders\CacheRecorder\CacheRecorder::DEFAULT_WITH_ERRORS, ?int $maxItemsWithErrors = \Spatie\FlareClient\Recorders\CacheRecorder\CacheRecorder::DEFAULT_MAX_ITEMS_WITH_ERRORS, array $operations = \Spatie\FlareClient\Recorders\CacheRecorder\CacheRecorder::DEFAULT_OPERATIONS, array<int, string> $ignoredKeys = [], array $extra = []): static;
         public function ignoreCacheEvents(): static;
         public function collectGlows(bool $withTraces = \Spatie\FlareClient\Recorders\GlowRecorder\GlowRecorder::DEFAULT_WITH_TRACES, bool $withErrors = \Spatie\FlareClient\Recorders\GlowRecorder\GlowRecorder::DEFAULT_WITH_ERRORS, ?int $maxItemsWithErrors = \Spatie\FlareClient\Recorders\GlowRecorder\GlowRecorder::DEFAULT_MAX_ITEMS_WITH_ERRORS): static;
         public function ignoreGlows(): static;
-        public function collectLogs(bool $withTraces = \Spatie\FlareClient\Recorders\LogRecorder\LogRecorder::DEFAULT_WITH_TRACES, bool $withErrors = \Spatie\FlareClient\Recorders\LogRecorder\LogRecorder::DEFAULT_WITH_ERRORS, ?int $maxItemsWithErrors = \Spatie\FlareClient\Recorders\LogRecorder\LogRecorder::DEFAULT_MAX_ITEMS_WITH_ERRORS, \Spatie\FlareClient\Enums\MessageLevels $minimalLevel = \Spatie\FlareClient\Enums\MessageLevels::Debug): static;
-        public function ignoreLogs(): static;
-        public function collectSolutions(?array $solutionProviders = null, array $extra = []): static;
-        public function ignoreSolutions(): static;
         public function collectDumps(bool $withTraces = \Spatie\FlareClient\Recorders\DumpRecorder\DumpRecorder::DEFAULT_WITH_TRACES, bool $withErrors = \Spatie\FlareClient\Recorders\DumpRecorder\DumpRecorder::DEFAULT_WITH_ERRORS, ?int $maxItemsWithErrors = \Spatie\FlareClient\Recorders\DumpRecorder\DumpRecorder::DEFAULT_MAX_ITEMS_WITH_ERRORS, bool $findOrigin = \Spatie\FlareClient\Recorders\DumpRecorder\DumpRecorder::DEFAULT_FIND_ORIGIN, array $extra = []): static;
         public function ignoreDumps(): static;
-        public function collectErrorsWithTraces(bool $withTraces = \Spatie\FlareClient\Recorders\ErrorRecorder\ErrorRecorder::DEFAULT_WITH_TRACES): static;
+        public function collectErrorsWithTraces(bool $withTraces = \Spatie\FlareClient\Tracer::DEFAULT_COLLECT_ERRORS_WITH_TRACES): static;
         public function ignoreErrorsWithTraces(): static;
+        public function collectLogsWithErrors(?int $maxItems = \Spatie\FlareClient\FlareMiddleware\AddLogs::DEFAULT_MAX_LOGS_WITH_ERRORS, \Monolog\Level $minimalLevel = \Spatie\FlareClient\FlareMiddleware\AddLogs::DEFAULT_MINIMAL_LOG_LEVEL_WITH_ERRORS, array $extra = []): static;
+        public function ignoreLogsWithErrors(): static;
         public function collectQueries(bool $withTraces = \Spatie\FlareClient\Recorders\QueryRecorder\QueryRecorder::DEFAULT_WITH_TRACES, bool $withErrors = \Spatie\FlareClient\Recorders\QueryRecorder\QueryRecorder::DEFAULT_WITH_ERRORS, ?int $maxItemsWithErrors = \Spatie\FlareClient\Recorders\QueryRecorder\QueryRecorder::DEFAULT_MAX_ITEMS_WITH_ERRORS, bool $includeBindings = \Spatie\FlareClient\Recorders\QueryRecorder\QueryRecorder::DEFAULT_INCLUDE_BINDINGS, bool $findOrigin = \Spatie\FlareClient\Recorders\QueryRecorder\QueryRecorder::DEFAULT_FIND_ORIGIN, ?int $findOriginThreshold = \Spatie\FlareClient\Recorders\QueryRecorder\QueryRecorder::DEFAULT_FIND_ORIGIN_THRESHOLD, array $extra = []): static;
         public function ignoreQueries(): static;
         public function collectTransactions(bool $withTraces = \Spatie\FlareClient\Recorders\TransactionRecorder\TransactionRecorder::DEFAULT_WITH_TRACES, bool $withErrors = \Spatie\FlareClient\Recorders\TransactionRecorder\TransactionRecorder::DEFAULT_WITH_ERRORS, ?int $maxItemsWithErrors = \Spatie\FlareClient\Recorders\TransactionRecorder\TransactionRecorder::DEFAULT_MAX_ITEMS_WITH_ERRORS, array $extra = []): static;
@@ -243,8 +207,18 @@ namespace Spatie\FlareClient {
         public function ignoreRedisCommands(): static;
         public function collectViews(bool $withTraces = \Spatie\FlareClient\Recorders\ViewRecorder\ViewRecorder::DEFAULT_WITH_TRACES, bool $withErrors = \Spatie\FlareClient\Recorders\ViewRecorder\ViewRecorder::DEFAULT_WITH_ERRORS, array $extra = []): static;
         public function ignoreViews(): static;
-        public function collectServerInfo(bool $host = true, bool $os = true, bool $php = true, bool $composer = true, array $extra = []): static;
+        /**
+        * @param bool|array|\Spatie\FlareClient\Enums\FlareEntityType $host
+        * @param bool|array|\Spatie\FlareClient\Enums\FlareEntityType $os
+        * @param bool|array|\Spatie\FlareClient\Enums\FlareEntityType $php
+        * @param bool|array|\Spatie\FlareClient\Enums\FlareEntityType $composer
+        * @param bool|array|\Spatie\FlareClient\Enums\FlareEntityType $composerPackages
+        * @generated
+        */
+        public function collectServerInfo(bool|array|\Spatie\FlareClient\Enums\FlareEntityType $host = resource::DEFAULT_HOST_ENTITY_TYPES, bool|array|\Spatie\FlareClient\Enums\FlareEntityType $os = resource::DEFAULT_OS_ENTITY_TYPES, bool|array|\Spatie\FlareClient\Enums\FlareEntityType $php = resource::DEFAULT_PHP_ENTITY_TYPES, bool|array|\Spatie\FlareClient\Enums\FlareEntityType $composer = false, bool|array|\Spatie\FlareClient\Enums\FlareEntityType $composerPackages = resource::DEFAULT_COMPOSER_PACKAGES_ENTITY_TYPES, array $extra = []): static;
         public function ignoreServerInfo(): static;
+        public function collectContext(): static;
+        public function ignoreContext(): static;
         /**
         * @param array<string, array<string, mixed>> $recorders
         * @generated
@@ -284,7 +258,9 @@ namespace Spatie\FlareClient {
         */
         public function filterReportsUsing(\Closure $filterReportsCallable): static;
         public function reportErrorLevels(int $reportErrorLevels): static;
-        public function trace(bool $trace = true, int $maxSpans = 512, int $maxAttributesPerSpan = 128, int $maxSpanEventsPerSpan = 128, int $maxAttributesPerSpanEvent = 128): static;
+        public function trace(bool $trace = true, int $maxSpans = \Spatie\FlareClient\Tracer::DEFAULT_MAX_SPANS_LIMIT, int $maxAttributesPerSpan = \Spatie\FlareClient\Tracer::DEFAULT_MAX_ATTRIBUTES_PER_SPAN_LIMIT, int $maxSpanEventsPerSpan = \Spatie\FlareClient\Tracer::DEFAULT_MAX_SPAN_EVENTS_PER_SPAN_LIMIT, int $maxAttributesPerSpanEvent = \Spatie\FlareClient\Tracer::DEFAULT_MAX_ATTRIBUTES_PER_SPAN_EVENT_LIMIT, int $maxAttributeSizeInKb = \Spatie\FlareClient\Tracer::DEFAULT_MAX_ATTRIBUTE_SIZE_IN_KB): static;
+        public function log(bool $log = true, ?\Monolog\Level $minimalLevel = null): static;
+        public function report(bool $report = true): static;
         /**
         * @param \Closure $configureScopeCallable
         * @generated
@@ -313,7 +289,11 @@ namespace Spatie\FlareClient {
         * @generated
         */
         public function sampler(string $sampler, array $config = []): static;
-        public function sendReportsImmediately(bool $sendReportsImmediately = true): static;
+        /**
+        * @param array<\Spatie\FlareClient\Sampling\SamplingRule> $rules
+        * @generated
+        */
+        public function sampleTracesDynamic(float $baseRate, array<\Spatie\FlareClient\Sampling\SamplingRule> $rules = []): static;
         /**
         * @param string $senderClass
         * @generated
@@ -324,182 +304,238 @@ namespace Spatie\FlareClient {
         * @generated
         */
         public function overrideGrouping(string $class, \Spatie\FlareClient\Enums\OverriddenGrouping $override): static;
-        public function traceLimits(\Spatie\FlareClient\Support\TraceLimits $traceLimits): static;
-        /**
-        * @param string $userAttributesProvider
-        * @generated
-        */
-        public function userAttributesProvider(string $userAttributesProvider): static;
-        /**
-        * @param string $requestAttributesProvider
-        * @generated
-        */
-        public function requestAttributesProvider(string $requestAttributesProvider): static;
-        /**
-        * @param string $consoleAttributesProvider
-        * @generated
-        */
-        public function consoleAttributesProvider(string $consoleAttributesProvider): static;
-        public function includeStackTraceWithMessages(bool $includeStackTraceWithMessages = true): static;
+        public function traceLimits(int $maxSpans = \Spatie\FlareClient\Tracer::DEFAULT_MAX_SPANS_LIMIT, int $maxAttributesPerSpan = \Spatie\FlareClient\Tracer::DEFAULT_MAX_ATTRIBUTES_PER_SPAN_LIMIT, int $maxSpanEventsPerSpan = \Spatie\FlareClient\Tracer::DEFAULT_MAX_SPAN_EVENTS_PER_SPAN_LIMIT, int $maxAttributesPerSpanEvent = \Spatie\FlareClient\Tracer::DEFAULT_MAX_ATTRIBUTES_PER_SPAN_EVENT_LIMIT, int $maxAttributeSizeInKb = \Spatie\FlareClient\Tracer::DEFAULT_MAX_ATTRIBUTE_SIZE_IN_KB): static;
         protected function addCollect(\Spatie\FlareClient\Contracts\FlareCollectType $type, array $options = []): static;
         protected function ignoreCollect(\Spatie\FlareClient\Contracts\FlareCollectType $type): static;
     }
     class FlareProvider {
+        public readonly \Spatie\FlareClient\Enums\FlareMode $mode;
         protected \Spatie\FlareClient\FlareConfig $config;
         protected \Spatie\FlareClient\Support\Container|\Illuminate\Contracts\Container\Container $container;
+        protected ?string $collectsResolver ?? null;
         protected ?\Closure $registerRecorderAndMiddlewaresCallback ?? null;
+        protected ?\Closure $isUsingSubtasksClosure ?? null;
+        protected ?\Closure $gracefulSpanEnderClosure ?? null;
+        protected bool $disableApiQueue ?? false;
         /**
         * @param ?\Closure $registerRecorderAndMiddlewaresCallback
+        * @param ?string $collectsResolver
+        * @param ?\Closure $isUsingSubtasksClosure
+        * @param ?\Closure $gracefulSpanEnderClosure
         * @generated
         */
-        public function __construct(\Spatie\FlareClient\FlareConfig $config, \Spatie\FlareClient\Support\Container|\Illuminate\Contracts\Container\Container $container, ?\Closure $registerRecorderAndMiddlewaresCallback = null): void;
+        public function __construct(\Spatie\FlareClient\FlareConfig $config, \Spatie\FlareClient\Support\Container|\Illuminate\Contracts\Container\Container $container, ?string $collectsResolver = null, ?\Closure $registerRecorderAndMiddlewaresCallback = null, ?\Closure $isUsingSubtasksClosure = null, ?\Closure $gracefulSpanEnderClosure = null, bool $disableApiQueue = false): void;
         public function register(): void;
         /**
-        * @var class-string<Recorder> $recorder
+        * @var CollectsResolver $collects
         * @generated
         */
         public function boot(): void;
         protected function defaultRegisterRecordersAndMiddlewaresCallback(): \Closure;
     }
-    class Report {
-        public readonly array<int, array> $stacktrace;
-        public readonly string $exceptionClass;
-        public readonly string $message;
-        public readonly null|int|string $code;
-        public readonly bool $isLog;
-        public readonly int $timeUs;
-        public readonly ?string $level ?? null;
-        public readonly array $attributes ?? [];
-        public readonly array<int, array> $solutions ?? [];
-        public readonly ?string $applicationPath ?? null;
-        public readonly ?int $openFrameIndex ?? null;
-        public readonly ?bool $handled ?? null;
-        public readonly array<int|string, array> $events ?? [];
-        public readonly ?string $trackingUuid ?? null;
-        public readonly ?\Spatie\FlareClient\Enums\OverriddenGrouping $overriddenGrouping ?? null;
+    type LoggerLogRecord = struct {
+        int $timeUnixNano;
+        int $observedTimeUnixNano;
+        ?string $traceId;
+        ?string $spanId;
+        ?string $flags;
+        ?string $severityText;
+        ?int $severityNumber;
+        mixed $body;
+        ?array<string, mixed> $attributes;
+    };
+    /**
+    * @generated
+    */
+    class Logger {
         /**
-        * @param array<int, array> $stacktrace
-        * @param array<int, array> $solutions
-        * @param array<int|string, array> $events
+        * @var array<int, LoggerLogRecord>
         * @generated
         */
-        public function __construct(array<int, array> $stacktrace, string $exceptionClass, string $message, null|int|string $code, bool $isLog, int $timeUs, ?string $level = null, array $attributes = [], array<int, array> $solutions = [], ?string $applicationPath = null, ?int $openFrameIndex = null, ?bool $handled = null, array<int|string, array> $events = [], ?string $trackingUuid = null, ?\Spatie\FlareClient\Enums\OverriddenGrouping $overriddenGrouping = null): void;
+        protected array<int, \Spatie\FlareClient\LoggerLogRecord> $logs ?? [];
+        protected ?int $minimalSeverityNumber ?? null;
+        protected readonly \Spatie\FlareClient\Api $api;
+        protected readonly \Spatie\FlareClient\Time\Time $time;
+        protected readonly \Spatie\FlareClient\Tracer $tracer;
+        protected readonly \Spatie\FlareClient\Support\Recorders $recorders;
+        protected readonly \Spatie\FlareClient\EntryPoint\EntryPointResolver $entryPointResolver;
+        protected readonly bool $disabled;
+        public function __construct(\Spatie\FlareClient\Api $api, \Spatie\FlareClient\Time\Time $time, \Spatie\FlareClient\Tracer $tracer, \Spatie\FlareClient\Support\Recorders $recorders, \Spatie\FlareClient\EntryPoint\EntryPointResolver $entryPointResolver, bool $disabled, ?\Monolog\Level $minimalLogLevel): void;
+        public function record(?string $message, \Monolog\Level $level = \Monolog\Level::Info, array $context = [], array $attributes = []): void;
+        public function log(null|int|\DateTimeInterface $timestampUnixNano = null, mixed $body = null, null|int|\DateTimeInterface $observedTimestampUnixNano = null, ?string $severityText = null, ?int $severityNumber = null, ?array $attributes = null, ?string $traceId = null, ?string $spanId = null, ?string $flags = null): void;
         /**
-        * @return array<string, mixed>
+        * @return array<int, LoggerLogRecord>
         * @generated
         */
-        public function toArray(): array<string, mixed>;
+        public function logs(): array<int, \Spatie\FlareClient\LoggerLogRecord>;
+        public function flush(): void;
+    }
+    class Reporter {
+        protected mixed $previousExceptionHandler ?? null;
+        protected mixed $previousErrorHandler ?? null;
+        protected readonly \Spatie\FlareClient\Api $api;
+        protected readonly bool $disabled;
+        protected readonly \Spatie\FlareClient\Tracer $tracer;
+        protected readonly \Spatie\FlareClient\Support\Lifecycle $lifecycle;
+        protected readonly \Spatie\FlareClient\Support\SentReports $sentReports;
+        protected readonly ?int $reportErrorLevels;
+        protected null|\Closure $filterExceptionsCallable;
+        protected null|\Closure $filterReportsCallable;
+        protected readonly \Spatie\FlareClient\ReportFactory $reportFactory;
+        protected readonly array<int, \Spatie\FlareClient\FlareMiddleware\FlareMiddleware> $middleware;
+        protected readonly \Spatie\FlareClient\Support\Recorders $recorders;
+        protected readonly bool $addReportsToTraces;
+        /**
+        * @param array<int, \Spatie\FlareClient\FlareMiddleware\FlareMiddleware> $middleware
+        * @param null|\Closure $filterExceptionsCallable
+        * @param null|\Closure $filterReportsCallable
+        * @generated
+        */
+        public function __construct(\Spatie\FlareClient\Api $api, bool $disabled, \Spatie\FlareClient\Tracer $tracer, \Spatie\FlareClient\Support\Lifecycle $lifecycle, \Spatie\FlareClient\Support\SentReports $sentReports, ?int $reportErrorLevels, null|\Closure $filterExceptionsCallable, null|\Closure $filterReportsCallable, \Spatie\FlareClient\ReportFactory $reportFactory, array<int, \Spatie\FlareClient\FlareMiddleware\FlareMiddleware> $middleware, \Spatie\FlareClient\Support\Recorders $recorders, bool $addReportsToTraces): void;
+        public function registerFlareHandlers(): self;
+        public function registerExceptionHandler(): self;
+        public function registerErrorHandler(?int $errorLevels = null): self;
+        /**
+        * @param ?\Closure $callback
+        * @generated
+        */
+        public function report(\Throwable $throwable, ?\Closure $callback = null, ?bool $handled = null): ?\Spatie\FlareClient\ReportFactory;
+        public function createReport(\Throwable $throwable, ?\Closure $callback = null, ?bool $handled = null): \Spatie\FlareClient\ReportFactory;
+        public function reportHandled(\Throwable $throwable): ?\Spatie\FlareClient\ReportFactory;
+        /**
+        * @param \Closure $filterExceptionsCallable
+        * @generated
+        */
+        public function filterExceptionsUsing(\Closure $filterExceptionsCallable): static;
+        /**
+        * @param \Closure $filterReportsCallable
+        * @generated
+        */
+        public function filterReportsUsing(\Closure $filterReportsCallable): static;
+        protected function shouldReport(\Throwable $throwable): bool;
+        public function handleException(\Throwable $throwable): void;
+        public function handleError(mixed $code, string $message, string $file = '', int $line = 0): void;
+        protected function addReportToTrace(\Throwable $throwable, ?bool $handled, \Spatie\FlareClient\ReportFactory $report): void;
     }
     class ReportFactory implements \Spatie\FlareClient\Contracts\WithAttributes {
         use \Spatie\FlareClient\Concerns\HasAttributes;
-        protected resource $resource;
-        public ?string $applicationPath ?? null;
-        /**
-        * @var null|\Spatie\Backtrace\Arguments\ArgumentReducers
-        * @generated
-        */
-        public null|\Spatie\Backtrace\Arguments\ArgumentReducers $argumentReducers ?? null;
-        public bool $collectStackTraceArguments ?? true;
-        public bool $includeStackTraceWithMessages ?? false;
+        public ?string $message ?? null;
         /**
         * @var array<\Spatie\FlareClient\Spans\Span|\Spatie\FlareClient\Spans\SpanEvent>
         * @generated
         */
         public array<\Spatie\FlareClient\Spans\Span|\Spatie\FlareClient\Spans\SpanEvent> $events ?? [];
-        /**
-        * @var array<\Spatie\ErrorSolutions\Contracts\Solution>
-        * @generated
-        */
-        public array<\Spatie\ErrorSolutions\Contracts\Solution> $solutions ?? [];
-        public ?string $notifierName ?? null;
         public ?bool $handled ?? null;
         public ?string $trackingUuid ?? null;
+        public \Throwable $throwable;
+        public ?string $level ?? null;
         /**
-        * @var array<string, \Spatie\FlareClient\Enums\OverriddenGrouping>
+        * @var array<string, mixed>
         * @generated
         */
-        public array<string, \Spatie\FlareClient\Enums\OverriddenGrouping> $overriddenGroupings ?? [];
-        protected ?\Spatie\FlareClient\Recorders\ContextRecorder\ContextRecorder $contextRecorder ?? null;
-        public ?\Throwable $throwable;
-        public string $message;
-        public ?string $level;
-        public bool $isLog;
-        protected function __construct(?\Throwable $throwable, string $message, ?string $level, bool $isLog): void;
-        public static function createForMessage(string $message, string $logLevel): \Spatie\FlareClient\ReportFactory;
-        public static function createForThrowable(\Throwable $throwable): \Spatie\FlareClient\ReportFactory;
-        public function resource(resource $resource): self;
-        public function applicationPath(?string $applicationPath): self;
-        public function includeStackTraceWithMessages(bool $includeStackTraceWithMessages = true): self;
+        public array<string, mixed> $customContext ?? [];
+        protected \Spatie\FlareClient\Support\StacktraceMapper $stacktraceMapper;
+        protected \Spatie\FlareClient\Time\Time $time;
+        protected \Spatie\FlareClient\Support\Ids $ids;
+        protected \Spatie\FlareClient\Tracer $tracer;
+        public resource $resource;
+        public null|\Spatie\Backtrace\Arguments\ArgumentReducers $argumentReducers;
+        public bool $collectStackTraceArguments;
+        public array<string, \Spatie\FlareClient\Enums\OverriddenGrouping> $overriddenGroupings;
+        public ?string $applicationPath;
+        /**
+        * @param array<string, \Spatie\FlareClient\Enums\OverriddenGrouping> $overriddenGroupings
+        * @generated
+        */
+        public function __construct(\Spatie\FlareClient\Support\StacktraceMapper $stacktraceMapper, \Spatie\FlareClient\Time\Time $time, \Spatie\FlareClient\Support\Ids $ids, \Spatie\FlareClient\Tracer $tracer, resource $resource, null|\Spatie\Backtrace\Arguments\ArgumentReducers $argumentReducers, bool $collectStackTraceArguments, array<string, \Spatie\FlareClient\Enums\OverriddenGrouping> $overriddenGroupings, ?string $applicationPath): void;
+        public function new(): self;
+        public function throwable(\Throwable $throwable): self;
         public function handled(bool $handled = true): self;
         public function span(\Spatie\FlareClient\Spans\Span ...$span): self;
         public function spanEvent(\Spatie\FlareClient\Spans\SpanEvent ...$spanEvent): self;
-        public function notifier(string $name): self;
-        public function addSolutions(\Spatie\ErrorSolutions\Contracts\Solution ...$solution): self;
-        public function argumentReducers(null|\Spatie\Backtrace\Arguments\ArgumentReducers $argumentReducers): self;
-        public function collectStackTraceArguments(bool $collectStackTraceArguments): self;
         public function trackingUuid(string $uuid): self;
-        public function overriddenGroupings(array $overriddenGroupings): self;
         public function context(string|array $key, mixed $value = null): self;
-        public function contextRecorder(\Spatie\FlareClient\Recorders\ContextRecorder\ContextRecorder $contextRecorder): self;
-        public function build(\Spatie\FlareClient\Support\StacktraceMapper $stacktraceMapper, \Spatie\FlareClient\Time\Time $time, \Spatie\FlareClient\Support\Ids $ids): \Spatie\FlareClient\Report;
+        public function toArray(): array;
+        protected function buildPrevious(): array;
         /**
         * @return array<\Spatie\Backtrace\Frame>
         * @generated
         */
-        protected function buildStacktrace(): array<\Spatie\Backtrace\Frame>;
-        protected function mapSolutions(): array;
+        protected function buildStacktrace(\Throwable $throwable): array<\Spatie\Backtrace\Frame>;
     }
     class Tracer {
+        public const int DEFAULT_MAX_SPANS_LIMIT ?? 1024;
+        public const int DEFAULT_MAX_ATTRIBUTES_PER_SPAN_LIMIT ?? 128;
+        public const int DEFAULT_MAX_SPAN_EVENTS_PER_SPAN_LIMIT ?? 128;
+        public const int DEFAULT_MAX_ATTRIBUTES_PER_SPAN_EVENT_LIMIT ?? 128;
+        public const int DEFAULT_MAX_ATTRIBUTE_SIZE_IN_KB ?? 32;
+        public const bool DEFAULT_COLLECT_ERRORS_WITH_TRACES ?? true;
         /**
-        * @var array<string, array<int, \Spatie\FlareClient\Spans\Span>>
+        * @var array<\Spatie\FlareClient\Spans\Span>
         * @generated
         */
-        protected array<string, array<int, \Spatie\FlareClient\Spans\Span>> $traces ?? [];
+        protected array<\Spatie\FlareClient\Spans\Span> $spans ?? [];
+        /**
+        * @var array @param array{max_spans: int, max_attributes_per_span: int, max_span_events_per_span: int, max_attributes_per_span_event: int, max_attribute_size_in_kb?: int}|null
+        * @generated
+        */
+        public readonly array $limits;
         protected ?string $currentTraceId ?? null;
         protected ?string $currentSpanId ?? null;
+        protected bool $currentSpanIdAvailable ?? true;
         protected readonly \Spatie\FlareClient\Api $api;
-        protected readonly \Spatie\FlareClient\TraceExporters\TraceExporter $exporter;
-        public readonly \Spatie\FlareClient\Support\TraceLimits $limits;
         public readonly \Spatie\FlareClient\Time\Time $time;
         public readonly \Spatie\FlareClient\Support\Ids $ids;
-        public readonly resource $resource;
-        public readonly \Spatie\FlareClient\Scopes\Scope $scope;
-        protected \Spatie\FlareClient\Recorders\ContextRecorder\ContextRecorder $contextRecorder;
+        public readonly \Spatie\FlareClient\Memory\Memory $memory;
+        protected \Spatie\FlareClient\Support\Recorders $recorders;
+        protected readonly \Spatie\FlareClient\EntryPoint\EntryPointResolver $entryPointResolver;
         public readonly \Spatie\FlareClient\Sampling\Sampler $sampler;
         public ?\Closure $configureSpansCallable ?? null;
         public ?\Closure $configureSpanEventsCallable ?? null;
-        public \Spatie\FlareClient\Enums\SamplingType $samplingType ?? \Spatie\FlareClient\Enums\SamplingType::Waiting;
-        public bool $clearTracesAfterExport ?? true;
-        protected \Spatie\FlareClient\Support\GracefulSpanEnder $gracefulSpanEnder;
+        public bool $sampling ?? false;
+        protected bool $paused ?? false;
+        public readonly bool $disabled ?? false;
+        protected \Closure|null $gracefulSpanEnderClosure ?? null;
+        public readonly \Spatie\FlareClient\Support\LargeAttributesTrimmer $largeAttributesTrimmer;
         /**
+        * @param array|null $limits
         * @param ?\Closure $configureSpansCallable
         * @param ?\Closure $configureSpanEventsCallable
+        * @param \Closure|null $gracefulSpanEnderClosure ,
         * @generated
         */
-        public function __construct(\Spatie\FlareClient\Api $api, \Spatie\FlareClient\TraceExporters\TraceExporter $exporter, \Spatie\FlareClient\Support\TraceLimits $limits, \Spatie\FlareClient\Time\Time $time, \Spatie\FlareClient\Support\Ids $ids, resource $resource, \Spatie\FlareClient\Scopes\Scope $scope, \Spatie\FlareClient\Recorders\ContextRecorder\ContextRecorder $contextRecorder, \Spatie\FlareClient\Sampling\Sampler $sampler = null, ?\Closure $configureSpansCallable = null, ?\Closure $configureSpanEventsCallable = null, \Spatie\FlareClient\Enums\SamplingType $samplingType = \Spatie\FlareClient\Enums\SamplingType::Waiting, bool $clearTracesAfterExport = true, \Spatie\FlareClient\Support\GracefulSpanEnder $gracefulSpanEnder = null): void;
-        public function startTrace(?string $traceparent = null, array $context = [], bool $forceSampling = false): \Spatie\FlareClient\Enums\SamplingType;
-        public function startTraceWithSpan(\Spatie\FlareClient\Spans\Span|\Closure $span, array $context = []): ?\Spatie\FlareClient\Spans\Span;
-        protected function initiateTrace(bool $sample, ?string $traceId = null, ?string $spanId = null): \Spatie\FlareClient\Enums\SamplingType;
-        public function isSampling(): bool;
+        public function __construct(\Spatie\FlareClient\Api $api, array|null $limits, \Spatie\FlareClient\Time\Time $time, \Spatie\FlareClient\Support\Ids $ids, \Spatie\FlareClient\Memory\Memory $memory, \Spatie\FlareClient\Support\Recorders $recorders, \Spatie\FlareClient\EntryPoint\EntryPointResolver $entryPointResolver, \Spatie\FlareClient\Sampling\Sampler $sampler, ?\Closure $configureSpansCallable = null, ?\Closure $configureSpanEventsCallable = null, bool $sampling = false, bool $paused = false, bool $disabled = false, \Closure|null $gracefulSpanEnderClosure = null, \Spatie\FlareClient\Support\LargeAttributesTrimmer $largeAttributesTrimmer): void;
+        public function startTrace(?string $traceId = null, ?string $spanId = null, ?string $traceParent = null): bool;
         public function endTrace(): void;
+        /**
+        * @var ?ContextRecorder $recorder
+        * @generated
+        */
+        public function reevaluateSampling(): void;
+        public function unsample(): void;
+        public function pauseSampling(): void;
+        public function resumeSampling(): void;
+        public function isSampling(): bool;
+        public function isSamplingPaused(): bool;
         public function currentTraceId(): ?string;
-        public function traceParent(): string;
+        public function currentSpanId(): ?string;
+        public function currentParentSpanId(): ?string;
+        public function nextSpanId(): string;
+        public function traceParent(): ?string;
         /**
         * @return array<\Spatie\FlareClient\Spans\Span>
         * @generated
         */
         public function currentTrace(): array<\Spatie\FlareClient\Spans\Span>;
-        public function setCurrentSpanId(?string $id): void;
-        public function currentSpanId(): ?string;
         public function hasCurrentSpan(?\Spatie\FlareClient\Contracts\FlareSpanType $spanType = null): bool;
         public function currentSpan(): ?\Spatie\FlareClient\Spans\Span;
-        public function addRawSpan(\Spatie\FlareClient\Spans\Span $span): \Spatie\FlareClient\Spans\Span;
+        public function addSpan(\Spatie\FlareClient\Spans\Span $span): \Spatie\FlareClient\Spans\Span|\Spatie\FlareClient\Enums\AddSpanResult;
         /**
         * @param array<string, mixed> $attributes
         * @generated
         */
-        public function startSpan(string $name, ?int $time = null, array<string, mixed> $attributes = [], bool $canStartTraces = true): ?\Spatie\FlareClient\Spans\Span;
-        public function endSpan(?\Spatie\FlareClient\Spans\Span $span = null, ?int $time = null, array|\Closure $additionalAttributes = []): \Spatie\FlareClient\Spans\Span;
+        public function startSpan(string $name, ?int $time = null, array<string, mixed> $attributes = []): \Spatie\FlareClient\Spans\Span|\Spatie\FlareClient\Enums\AddSpanResult;
+        public function endSpan(?\Spatie\FlareClient\Spans\Span $span = null, ?int $time = null, array|\Closure $additionalAttributes = [], bool $includeMemoryUsage = false): ?\Spatie\FlareClient\Spans\Span;
         /**
         * @template T
         * @param \Closure $callback
@@ -508,13 +544,12 @@ namespace Spatie\FlareClient {
         * @return T
         * @generated
         */
-        public function span<T>(string $name, \Closure $callback, array<string, mixed> $attributes = [], ?\Closure $endAttributes = null, bool $canStartTraces = true): T;
+        public function span<T>(string $name, \Closure $callback, array<string, mixed> $attributes = [], ?\Closure $endAttributes = null, ?int $startTime = null, ?int $endTime = null, bool $includeMemoryUsage = false): T;
         /**
         * @param array<string, mixed> $attributes
         * @generated
         */
         public function spanEvent(string $name, array<string, mixed> $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\SpanEvent;
-        public function trashCurrentTrace(\Spatie\FlareClient\Enums\SamplingType $samplingType = \Spatie\FlareClient\Enums\SamplingType::Waiting): void;
         /**
         * @param \Closure $callback
         * @generated
@@ -525,51 +560,150 @@ namespace Spatie\FlareClient {
         * @generated
         */
         public function configureSpanEventsUsing(\Closure $callback): static;
-        /**
-        * @return array<string, array<int, \Spatie\FlareClient\Spans\Span>>
-        * @generated
-        */
-        public function getTraces(): array<string, array<int, \Spatie\FlareClient\Spans\Span>>;
-        public function gracefullyHandleError(): void;
+        public function gracefullyEndSpans(bool $force = false): void;
         protected function configureSpan(\Spatie\FlareClient\Spans\Span $span): void;
     }
 }
 namespace Spatie\FlareClient\AttributesProviders {
-    class ConsoleAttributesProvider {
-        public function toArray(array $arguments): array;
-    }
     class EmptyUserAttributesProvider extends \Spatie\FlareClient\AttributesProviders\UserAttributesProvider {
     }
-    class GitAttributesProvider {
-        protected array $cached;
+    class GitAttributesProvider implements \Spatie\FlareClient\Contracts\AttributesProvider {
+        protected static ?array $cached ?? null;
         protected ?string $applicationPath ?? null;
-        public function __construct(?string $applicationPath = null): void;
-        public function toArray(bool $useProcess = \Spatie\FlareClient\FlareMiddleware\AddGitInformation::DEFAULT_USE_PROCESS): array;
+        protected bool $useProcess ?? resource::DEFAULT_GIT_USE_PROCESS;
+        public function __construct(?string $applicationPath = null, bool $useProcess = resource::DEFAULT_GIT_USE_PROCESS): void;
+        public static function clearCache(): void;
+        public function toArray(): array;
         protected function collectGitFileInfo(string $baseDirectory): array;
         protected function collectGitHeadInfo(string $content, string $gitDirectory): array;
         protected function collectGitCommitInfo(string $gitDirectory, string $hash): array;
         protected function collectGitProcessInfo(string $baseDir): array;
+        protected function sanitizeRemoteUrl(string $url): string;
         protected function getGitBaseDirectory(): ?string;
     }
-    class RequestAttributesProvider {
-        protected \Spatie\FlareClient\Support\Redactor $redactor;
-        protected \Spatie\FlareClient\AttributesProviders\UserAttributesProvider $userAttributesProvider;
-        public function __construct(\Spatie\FlareClient\Support\Redactor $redactor, \Spatie\FlareClient\AttributesProviders\UserAttributesProvider $userAttributesProvider): void;
-        public function toArray(\Symfony\Component\HttpFoundation\Request $request, bool $includeContents = true): array;
-        protected function getRequest(\Symfony\Component\HttpFoundation\Request $request, bool $includeContents): array;
-        protected function getInputBag(\Symfony\Component\HttpFoundation\Request $request): \Symfony\Component\HttpFoundation\InputBag|\Symfony\Component\HttpFoundation\ParameterBag;
-        protected function mapFiles(array $files): array;
-        protected function getSession(\Symfony\Component\HttpFoundation\Request $request): array;
-        protected function getCookies(\Symfony\Component\HttpFoundation\Request $request): array;
-        protected function getHeaders(\Symfony\Component\HttpFoundation\Request $request): array;
-        protected function getUser(\Symfony\Component\HttpFoundation\Request $request): mixed;
+    class PhpCommandAttributesProvider implements \Spatie\FlareClient\Contracts\CommandAttributesProvider {
+        protected string $command;
+        protected ?string $commandClass ?? null;
+        protected array<int, string>|null $arguments ?? null;
+        /**
+        * @param array<int, string>|null $arguments
+        * @generated
+        */
+        public function __construct(string $command, ?string $commandClass = null, array<int, string>|null $arguments = null): void;
+        public function toArray(): array;
+        public function command(): string;
+        public function commandClass(): ?string;
+        public function entryPointHandlerIdentifier(): ?string;
+        public function entryPointHandlerName(): ?string;
+        public function entryPointHandlerType(): ?string;
     }
-    abstract class UserAttributesProvider {
-        public function id(mixed $user): string|int|null;
-        public function fullName(mixed $user): string|null;
-        public function email(mixed $user): string|null;
-        public function attributes(mixed $user): array;
-        public function toArray(mixed $user): array;
+    class PhpJobAttributesProvider implements \Spatie\FlareClient\Contracts\JobAttributesProvider {
+        protected string $jobName;
+        protected ?string $jobClass ?? null;
+        public function __construct(string $jobName, ?string $jobClass = null): void;
+        public function toArray(): array;
+        public function jobName(): string;
+        public function jobClass(): ?string;
+        public function entryPointHandlerIdentifier(): ?string;
+        public function entryPointHandlerName(): ?string;
+        public function entryPointHandlerType(): ?string;
+    }
+    class PhpRequestAttributesProvider implements \Spatie\FlareClient\Contracts\RequestAttributesProvider {
+        protected \Spatie\FlareClient\Support\Redactor $redactor;
+        protected array<string, string|int>|null $server ?? null;
+        protected array<string, string>|null $headers ?? null;
+        /**
+        * @param array<string, string|int>|null $server
+        * @param array<string, string>|null $headers
+        * @generated
+        */
+        public function __construct(\Spatie\FlareClient\Support\Redactor $redactor, array<string, string|int>|null $server = null, array<string, string>|null $headers = null): void;
+        public function toArray(): array;
+        public function url(): string;
+        public function path(): ?string;
+        public function method(): string;
+        protected function scheme(): ?string;
+        protected function serverString(string $key): ?string;
+        protected function headerValue(string $name): ?string;
+        /**
+        * @return array<string, string>
+        * @generated
+        */
+        protected function resolveHeaders(): array<string, string>;
+    }
+    class PhpResponseAttributesProvider implements \Spatie\FlareClient\Contracts\ResponseAttributesProvider {
+        protected \Spatie\FlareClient\Support\Redactor $redactor;
+        protected ?int $statusCode ?? null;
+        protected ?int $bodySize ?? null;
+        protected array<string, string> $headers ?? [];
+        /**
+        * @param array<string, string> $headers
+        * @generated
+        */
+        public function __construct(\Spatie\FlareClient\Support\Redactor $redactor, ?int $statusCode = null, ?int $bodySize = null, array<string, string> $headers = []): void;
+        public function toArray(): array;
+        public function statusCode(): ?int;
+    }
+    class PhpRouteAttributesProvider implements \Spatie\FlareClient\Contracts\RouteAttributesProvider, \Spatie\FlareClient\Contracts\EntryPointHandlerProvider {
+        protected string $method;
+        protected ?string $route ?? null;
+        protected ?string $handlerName ?? null;
+        public function __construct(?string $route = null, ?string $method = null, ?string $handlerName = null): void;
+        public function toArray(): array;
+        public function route(): ?string;
+        public function method(): string;
+        public function entryPointHandlerName(): ?string;
+        public function entryPointHandlerType(): ?string;
+        public function entryPointHandlerIdentifier(): ?string;
+    }
+    class SymfonyInputCommandAttributesProvider implements \Spatie\FlareClient\Contracts\CommandAttributesProvider {
+        protected \Symfony\Component\Console\Input\InputInterface $input;
+        protected string $command;
+        protected ?string $commandClass ?? null;
+        public function __construct(\Symfony\Component\Console\Input\InputInterface $input, string $command, ?string $commandClass = null): void;
+        public function toArray(): array;
+        public function command(): string;
+        public function commandClass(): ?string;
+        /**
+        * @return array<int, string>
+        * @generated
+        */
+        protected function getArguments(): array<int, string>;
+        public function entryPointHandlerName(): ?string;
+        public function entryPointHandlerType(): ?string;
+        public function entryPointHandlerIdentifier(): ?string;
+    }
+    class SymfonyRequestAttributesProvider implements \Spatie\FlareClient\Contracts\RequestAttributesProvider {
+        protected \Symfony\Component\HttpFoundation\Request $request;
+        protected \Spatie\FlareClient\Support\Redactor $redactor;
+        protected bool $includeContents ?? true;
+        public function __construct(\Spatie\FlareClient\Support\Redactor $redactor, ?\Symfony\Component\HttpFoundation\Request $request = null, bool $includeContents = true): void;
+        public function toArray(): array;
+        public function url(): string;
+        public function path(): ?string;
+        public function method(): string;
+        protected function getRequest(): array;
+        protected function getInputBag(): \Symfony\Component\HttpFoundation\InputBag|\Symfony\Component\HttpFoundation\ParameterBag;
+        protected function mapFiles(array $files): array;
+        protected function getSession(): array;
+        protected function getCookies(): array;
+        protected function getHeaders(): array;
+    }
+    class SymfonyResponseAttributesProvider implements \Spatie\FlareClient\Contracts\ResponseAttributesProvider {
+        protected \Spatie\FlareClient\Support\Redactor $redactor;
+        protected \Symfony\Component\HttpFoundation\Response $response;
+        public function __construct(\Spatie\FlareClient\Support\Redactor $redactor, \Symfony\Component\HttpFoundation\Response $response): void;
+        public function toArray(): array;
+        public function statusCode(): ?int;
+    }
+    abstract class UserAttributesProvider implements \Spatie\FlareClient\Contracts\AttributesProvider {
+        protected mixed $user;
+        public function __construct(mixed $user): void;
+        public function id(): string|int|null;
+        public function fullName(): ?string;
+        public function email(): ?string;
+        public function attributes(): array;
+        public function toArray(): array;
     }
 }
 namespace Spatie\FlareClient\Concerns {
@@ -587,7 +721,7 @@ namespace Spatie\FlareClient\Concerns\Recorders {
     * @template T of Span|SpanEvent
     * @generated
     */
-    trait BacktracingRecorder<T extends \Spatie\FlareClient\Spans\Span|\Spatie\FlareClient\Spans\SpanEvent> {
+    trait BacktracingRecorder<T extends Span|SpanEvent> {
         protected bool $findOrigin ?? false;
         protected ?int $findOriginThreshold ?? null;
         protected \Spatie\FlareClient\Support\BackTracer $backTracer;
@@ -602,7 +736,7 @@ namespace Spatie\FlareClient\Concerns\Recorders {
     * @template T of Span|SpanEvent
     * @generated
     */
-    trait ErrorsRecorder<T extends \Spatie\FlareClient\Spans\Span|\Spatie\FlareClient\Spans\SpanEvent> {
+    trait ErrorsRecorder<T extends Span|SpanEvent> {
         /**
         * @var array<T>
         * @generated
@@ -612,152 +746,38 @@ namespace Spatie\FlareClient\Concerns\Recorders {
         protected ?int $maxItemsWithErrors ?? null;
         public final function reset(): void;
     }
-    /**
-    * @template T of SpanEvent|Span
-    * @deprecated use the SpansRecorder or SpanEventsRecorder classes instead
-    * @generated
-    */
-    deprecated trait RecordsEntries<T extends \Spatie\FlareClient\Spans\SpanEvent|\Spatie\FlareClient\Spans\Span> {
-        /**
-        * @var array<T>
-        * @generated
-        */
-        protected array<T> $entries ?? [];
-        protected bool $withTraces ?? false;
-        protected bool $withErrors ?? false;
-        protected ?int $maxItemsWithErrors ?? null;
-        protected bool $findOrigin ?? false;
-        protected ?int $findOriginThreshold ?? null;
-        protected \Spatie\FlareClient\Tracer $tracer;
-        protected \Spatie\FlareClient\Support\BackTracer $backTracer;
-        protected abstract function shouldTrace(): bool;
-        protected abstract function shouldReport(): bool;
-        /**
-        * @param \Spatie\FlareClient\Spans\SpanEvent $entry
-        * @generated
-        */
-        protected abstract function traceEntry(\Spatie\FlareClient\Spans\SpanEvent $entry): void;
-        public static function register(\Psr\Container\ContainerInterface $container, array $config): \Closure;
-        public function __construct(\Spatie\FlareClient\Tracer $tracer, \Spatie\FlareClient\Support\BackTracer $backTracer, array $config): void;
-        public function boot(): void;
-        public function reset(): void;
-        protected function configure(array $config): void;
-        protected function configureRecorder(array $config): void;
-        /**
-        * @param callable $entry
-        * @return ?T
-        * @generated
-        */
-        protected function persistEntry(callable $entry): ?T;
-        /**
-        * @param T $entry
-        * @return T
-        * @generated
-        */
-        protected function setOrigin(T $entry, ?\Closure $frameAfter = null): T;
-        protected function shouldFindOrigin(?int $duration): bool;
-    }
-    /**
-    * @template T of SpanEvent
-    * @deprecated Use the SpanEventsRecorder instead.
-    * @generated
-    */
-    deprecated trait RecordsSpanEvents<T extends \Spatie\FlareClient\Spans\SpanEvent> {
-        use \Spatie\FlareClient\Concerns\Recorders\RecordsEntries;
-        /**
-        * @use RecordsEntries<T>
-        * @generated
-        */
-        protected function shouldTrace(): bool;
-        protected function shouldReport(): bool;
-        /**
-        * @param T $entry
-        * @generated
-        */
-        protected function traceEntry(T $entry): void;
-        /**
-        * @param string|\Closure|null $name
-        * @param array|\Closure $attributes
-        * @param ?\Closure $nameAndAttributes
-        * @param ?int $time
-        * @param ?\Closure $spanEventCallback
-        * @return ?\Spatie\FlareClient\Spans\SpanEvent
-        * @generated
-        */
-        protected function spanEvent(string|\Closure|null $name = null, array|\Closure $attributes = [], ?\Closure $nameAndAttributes = null, ?int $time = null, ?\Closure $spanEventCallback = null): ?\Spatie\FlareClient\Spans\SpanEvent;
-        /**
-        * @return array<T>
-        * @generated
-        */
-        public function getSpanEvents(): array<T>;
-    }
-    /**
-    * @template T of Span
-    * @deprecated Use the SpansRecorder instead.
-    * @generated
-    */
-    deprecated trait RecordsSpans<T extends \Spatie\FlareClient\Spans\Span> {
-        use \Spatie\FlareClient\Concerns\Recorders\RecordsEntries { \Spatie\FlareClient\Concerns\Recorders\RecordsEntries::persistEntry as protected basePersistEntry; }
-        /**
-        * @var array<int, T>
-        * @generated
-        */
-        protected array<int, T> $stack ?? [];
-        protected bool $shouldEndTrace ?? false;
-        protected int $nestingCounter ?? 0;
-        protected function shouldTrace(): bool;
-        protected function shouldReport(): bool;
-        protected function canStartTraces(): bool;
-        protected function shouldStartTrace(\Spatie\FlareClient\Spans\Span $span): bool;
-        /**
-        * @param T $entry
-        * @generated
-        */
-        protected function traceEntry(T $entry): void;
-        /**
-        * @param \Closure|string|null $name
-        * @param \Closure|array $attributes
-        * @param ?\Closure $nameAndAttributes
-        * @param ?int $time
-        * @param ?string $parentId
-        * @return ?\Spatie\FlareClient\Spans\Span
-        * @generated
-        */
-        protected function startSpan(\Closure|string|null $name = null, \Closure|array $attributes = [], ?\Closure $nameAndAttributes = null, ?int $time = null, ?string $parentId = null): ?\Spatie\FlareClient\Spans\Span;
-        /**
-        * @param ?\Closure $spanCallback
-        * @param \Closure|array $additionalAttributes
-        * @return T|null
-        * @generated
-        */
-        protected function endSpan(?int $time = null, \Closure|array $additionalAttributes = [], ?\Closure $spanCallback = null): T|null;
-        /**
-        * @param \Closure|string|null $name
-        * @param \Closure|array $attributes
-        * @param ?\Closure $nameAndAttributes
-        * @param ?\Closure $additionalAttributes
-        * @param ?\Closure $spanCallback
-        * @generated
-        */
-        protected function span(\Closure|string|null $name = null, \Closure|array $attributes = [], ?\Closure $nameAndAttributes = null, ?int $start = null, ?int $end = null, ?int $duration = null, ?string $parentId = null, ?\Closure $additionalAttributes = null, ?\Closure $spanCallback = null): ?\Spatie\FlareClient\Spans\Span;
-        protected function persistEntry(\Closure $entry): ?\Spatie\FlareClient\Spans\Span;
-        /**
-        * @return array<T>
-        * @generated
-        */
-        public function getSpans(): array<T>;
+    trait LargeAttributesTrimmingRecorder {
+        protected function shouldTrimAttributes(): bool;
+        protected function trimAttributes(\Spatie\FlareClient\Spans\Span|\Spatie\FlareClient\Spans\SpanEvent $entry): void;
     }
     trait TracingRecorder {
         protected bool $withTraces ?? false;
     }
 }
 namespace Spatie\FlareClient\Contracts {
+    interface AttributesProvider {
+        /**
+        * @return array<string, mixed>
+        * @generated
+        */
+        public function toArray(): array<string, mixed>;
+    }
+    interface CommandAttributesProvider extends \Spatie\FlareClient\Contracts\AttributesProvider, \Spatie\FlareClient\Contracts\EntryPointHandlerProvider {
+        public function command(): string;
+        public function commandClass(): ?string;
+    }
+    interface EntryPointHandlerProvider {
+        public function entryPointHandlerName(): ?string;
+        public function entryPointHandlerType(): ?string;
+        public function entryPointHandlerIdentifier(): ?string;
+    }
     /**
     * @property string $value
     * @generated
     */
     interface FlareCollectType {
         public string $value;
+        public function resolvesEntryPoint(): bool;
     }
     interface FlareSpanEventType {
     }
@@ -768,12 +788,47 @@ namespace Spatie\FlareClient\Contracts {
     interface FlareSpanType {
         public string $value;
     }
+    interface JobAttributesProvider extends \Spatie\FlareClient\Contracts\QueuedJobAttributesProvider, \Spatie\FlareClient\Contracts\EntryPointHandlerProvider {
+    }
     interface ProvidesFlareContext {
         /**
         * @return array<int|string, mixed>
         * @generated
         */
         public function context(): array<int|string, mixed>;
+    }
+    interface QueuedJobAttributesProvider extends \Spatie\FlareClient\Contracts\AttributesProvider {
+        public function jobName(): string;
+        public function jobClass(): ?string;
+    }
+    interface RequestAttributesProvider extends \Spatie\FlareClient\Contracts\AttributesProvider {
+        public function url(): string;
+        public function path(): ?string;
+        public function method(): string;
+    }
+    interface ResponseAttributesProvider extends \Spatie\FlareClient\Contracts\AttributesProvider {
+        public function statusCode(): ?int;
+    }
+    interface RouteAttributesProvider extends \Spatie\FlareClient\Contracts\AttributesProvider {
+        public function route(): ?string;
+        public function method(): string;
+    }
+    /**
+    * Implemented by attribute providers (route, command, job, ...) that want to
+    *
+    * expose a small map of attributes for sampling rules to match against,
+    * separately from the full attribute payload produced by toArray(). Keep the
+    * returned values cheap to compute — this runs on every entry-point handler
+    * resolution, including for traces that may still get dropped.
+    *
+    * @generated
+    */
+    interface SamplingAttributesProvider {
+        /**
+        * @return array<string, mixed>
+        * @generated
+        */
+        public function samplingAttributes(): array<string, mixed>;
     }
     interface WithAttributes {
         public function addAttribute(string $key, mixed $value): static;
@@ -803,100 +858,45 @@ namespace Spatie\FlareClient\Contracts\Recorders {
         public function getSpans(): array<\Spatie\FlareClient\Spans\Span>;
     }
 }
-namespace Spatie\FlareClient\Disabled {
-    class DisabledApplicationRecorder extends \Spatie\FlareClient\Recorders\ApplicationRecorder\ApplicationRecorder {
-        public function __construct(): void;
-        public function recordStart(array $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\Span;
-        public function recordRegistering(array $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\Span;
-        public function recordRegistered(array $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\Span;
-        public function recordRegistration(array $attributes = [], ?int $start = null, ?int $end = null, ?int $duration = null): ?\Spatie\FlareClient\Spans\Span;
-        public function recordBooting(array $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\Span;
-        public function recordBooted(array $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\Span;
-        public function recordBoot(array $attributes = [], ?int $start = null, ?int $end = null, ?int $duration = null): ?\Spatie\FlareClient\Spans\Span;
-        public function recordTerminating(array $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\Span;
-        public function recordTerminated(array $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\Span;
-        public function recordTermination(array $attributes = [], ?int $start = null, ?int $end = null, ?int $duration = null): ?\Spatie\FlareClient\Spans\Span;
-        public function recordEnd(array $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\Span;
-    }
-    class DisabledFlare extends \Spatie\FlareClient\Flare {
-        public \Spatie\FlareClient\Support\SentReports $disabledSentReports;
-        public \Spatie\FlareClient\Recorders\ApplicationRecorder\ApplicationRecorder $disabledApplicationRecorder;
-        public readonly \Spatie\FlareClient\Tracer $tracer;
-        public function __construct(\Spatie\FlareClient\Tracer $tracer = null): void;
-        public static function make(string|\Spatie\FlareClient\FlareConfig $apiToken): self;
-        public function registerFlareHandlers(): self;
-        public function registerExceptionHandler(): self;
-        public function registerErrorHandler(?int $errorLevels = null): self;
-        public function bootRecorders(): self;
-        public function application(): \Spatie\FlareClient\Recorders\ApplicationRecorder\ApplicationRecorder;
-        public function cache(): \Spatie\FlareClient\Recorders\CacheRecorder\CacheRecorder|null;
-        public function command(): \Spatie\FlareClient\Recorders\CommandRecorder\CommandRecorder|null;
-        public function externalHttp(): \Spatie\FlareClient\Recorders\ExternalHttpRecorder\ExternalHttpRecorder|null;
-        public function filesystem(): \Spatie\FlareClient\Recorders\FilesystemRecorder\FilesystemRecorder|null;
-        public function glow(): \Spatie\FlareClient\Recorders\GlowRecorder\GlowRecorder|null;
-        public function log(): \Spatie\FlareClient\Recorders\LogRecorder\LogRecorder|null;
-        public function query(): \Spatie\FlareClient\Recorders\QueryRecorder\QueryRecorder|null;
-        public function redisCommand(): \Spatie\FlareClient\Recorders\RedisCommandRecorder\RedisCommandRecorder|null;
-        public function request(): \Spatie\FlareClient\Recorders\RequestRecorder\RequestRecorder|null;
-        public function response(): \Spatie\FlareClient\Recorders\ResponseRecorder\ResponseRecorder|null;
-        public function routing(): \Spatie\FlareClient\Recorders\RoutingRecorder\RoutingRecorder|null;
-        public function transaction(): \Spatie\FlareClient\Recorders\TransactionRecorder\TransactionRecorder|null;
-        public function view(): \Spatie\FlareClient\Recorders\ViewRecorder\ViewRecorder|null;
-        public function recorder(\Spatie\FlareClient\Enums\RecorderType|string $type): \Spatie\FlareClient\Contracts\Recorders\Recorder|null;
-        public function handleException(\Throwable $throwable): void;
-        public function handleError(mixed $code, string $message, string $file = '', int $line = 0): void;
-        public function report(\Throwable $throwable, ?callable $callback = null, ?bool $handled = null): ?\Spatie\FlareClient\Report;
-        public function createReport(\Throwable $throwable, ?callable $callback = null, ?bool $handled = null): \Spatie\FlareClient\Report;
-        public function reportHandled(\Throwable $throwable): ?\Spatie\FlareClient\Report;
-        public function reportMessage(string $message, string $logLevel, ?callable $callback = null): \Spatie\FlareClient\Report;
-        public function sendTestReport(\Throwable $throwable): void;
-        public function withApplicationVersion(string|\Closure $version): self;
-        public function withApplicationName(string|\Closure $name): self;
-        public function withApplicationStage(string|\Closure $stage): self;
-        public function withSolutionProvider(string ...$solutionProviders): self;
-        public function filterExceptionsUsing(\Closure $filterExceptionsCallable): static;
-        public function filterReportsUsing(\Closure $filterReportsCallable): static;
-        public function sendReportsImmediately(bool $sendReportsImmediately = true): self;
-        public function context(array|string $key, mixed $value = null): \Spatie\FlareClient\Flare;
-        public function reset(bool $reports = true, bool $traces = true, bool $clearCustomContext = true): void;
-        public function sentReports(): \Spatie\FlareClient\Support\SentReports;
-        protected function emptyReport(): \Spatie\FlareClient\Report;
-    }
-    class DisabledTracer extends \Spatie\FlareClient\Tracer {
-        public function __construct(): void;
-        public function startTrace(?string $traceparent = null, array $context = [], bool $forceSampling = false): \Spatie\FlareClient\Enums\SamplingType;
-        public function startTraceWithSpan(\Spatie\FlareClient\Spans\Span|\Closure $span, array $context = []): ?\Spatie\FlareClient\Spans\Span;
-        protected function initiateTrace(bool $sample, ?string $traceId = null, ?string $spanId = null): \Spatie\FlareClient\Enums\SamplingType;
-        public function isSampling(): bool;
-        public function endTrace(): void;
-        public function currentTraceId(): ?string;
-        public function traceParent(): string;
+namespace Spatie\FlareClient\EntryPoint {
+    class EntryPoint {
+        public bool $handlerResolved ?? false;
+        public string $handlerIdentifier;
+        public ?string $handlerName;
+        public ?string $handlerType;
         /**
-        * @return array<\Spatie\FlareClient\Spans\Span>
+        * @var array<string, mixed>
         * @generated
         */
-        public function currentTrace(): array<\Spatie\FlareClient\Spans\Span>;
-        public function setCurrentSpanId(?string $id): void;
-        public function currentSpanId(): ?string;
-        public function hasCurrentSpan(?\Spatie\FlareClient\Contracts\FlareSpanType $spanType = null): bool;
-        public function currentSpan(): ?\Spatie\FlareClient\Spans\Span;
-        public function addRawSpan(\Spatie\FlareClient\Spans\Span $span): \Spatie\FlareClient\Spans\Span;
-        public function startSpan(string $name, ?int $time = null, array $attributes = [], bool $canStartTraces = true): ?\Spatie\FlareClient\Spans\Span;
-        public function endSpan(?\Spatie\FlareClient\Spans\Span $span = null, ?int $time = null, array|\Closure $additionalAttributes = []): \Spatie\FlareClient\Spans\Span;
-        public function span(string $name, \Closure $callback, array $attributes = [], ?\Closure $endAttributes = null, bool $canStartTraces = true): null;
+        public array<string, mixed> $samplingAttributes ?? [];
+        public \Spatie\FlareClient\Enums\EntryPointType $type;
+        public string $value;
+        public function __construct(\Spatie\FlareClient\Enums\EntryPointType $type, string $value): void;
+        public function updateValue(string $value): void;
         /**
-        * @param array<string, mixed> $attributes
+        * @param array<string, mixed> $samplingAttributes
         * @generated
         */
-        public function spanEvent(string $name, array<string, mixed> $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\SpanEvent;
-        public function trashCurrentTrace(\Spatie\FlareClient\Enums\SamplingType $samplingType = \Spatie\FlareClient\Enums\SamplingType::Waiting): void;
-        public function configureSpansUsing(\Closure $callback): static;
-        public function configureSpanEventsUsing(\Closure $callback): static;
-        public function getTraces(): array;
-        public function gracefullyHandleError(): void;
+        public function setHandler(string $handlerIdentifier, ?string $handlerName, ?string $handlerType, array<string, mixed> $samplingAttributes = []): void;
+        public function setHandlerFromAttributesProvider(\Spatie\FlareClient\Contracts\AttributesProvider&\Spatie\FlareClient\Contracts\EntryPointHandlerProvider $provider): void;
+        /**
+        * @return array<string, string|null>
+        * @generated
+        */
+        public function toAttributes(): array<string, string|null>;
+    }
+    class EntryPointResolver {
+        protected ?\Spatie\FlareClient\EntryPoint\EntryPoint $entryPoint ?? null;
+        public function get(): \Spatie\FlareClient\EntryPoint\EntryPoint;
+        public function set(\Spatie\FlareClient\EntryPoint\EntryPoint $entryPoint): void;
+        public function clear(): void;
+        protected function resolve(): \Spatie\FlareClient\EntryPoint\EntryPoint;
     }
 }
 namespace Spatie\FlareClient\Enums {
+    enum AddSpanResult {
+        case LimitReached;
+    }
     enum CacheOperation: string {
         case Get = 'get';
         case Set = 'set';
@@ -912,12 +912,11 @@ namespace Spatie\FlareClient\Enums {
         case Application = 'application';
         case Dumps = 'dumps';
         case Requests = 'requests';
+        case Context = 'context';
         case Commands = 'console';
         case GitInfo = 'git_info';
         case Cache = 'cache';
         case Glows = 'glows';
-        case Logs = 'logs';
-        case Solutions = 'solutions';
         case Throwables = 'throwables';
         case Queries = 'queries';
         case Transactions = 'database_transactions';
@@ -932,6 +931,8 @@ namespace Spatie\FlareClient\Enums {
         case Recorders = 'recorders';
         case FlareMiddleware = 'flare_middleware';
         case ErrorsWithTraces = 'errors_with_traces';
+        case LogsWithErrors = 'logs_with_errors';
+        public function resolvesEntryPoint(): bool;
     }
     enum EntryPointType: string {
         case Web = 'web';
@@ -956,10 +957,16 @@ namespace Spatie\FlareClient\Enums {
         case Other = 'other';
         case Url = 'url';
     }
-    enum FlarePayloadType: string {
-        case Error = 'error';
-        case TestError = 'testError';
+    enum FlareEntityType: string {
+        case Logs = 'logs';
         case Traces = 'traces';
+        case Errors = 'errors';
+        public function singleName(): string;
+    }
+    enum FlareMode {
+        case Disabled;
+        case Ignition;
+        case Enabled;
     }
     enum Framework: string {
         case Laravel = 'laravel';
@@ -977,16 +984,16 @@ namespace Spatie\FlareClient\Enums {
         case Svelte = 'svelte';
         case Alpine = 'alpine';
     }
-    enum MessageLevels: string {
-        case Emergency = 'emergency';
-        case Alert = 'alert';
-        case Critical = 'critical';
-        case Error = 'error';
-        case Warning = 'warning';
-        case Notice = 'notice';
-        case Info = 'info';
-        case Debug = 'debug';
-        public function getOrder(): int;
+    enum LifecycleStage: string {
+        case Idle = 'idle';
+        case Started = 'started';
+        case Registering = 'registering';
+        case Registered = 'registered';
+        case Booting = 'booting';
+        case Booted = 'booted';
+        case Subtask = 'subtask';
+        case Terminating = 'terminating';
+        case Terminated = 'terminated';
     }
     enum OverriddenGrouping: string {
         case ExceptionClass = 'exception_class';
@@ -1001,12 +1008,10 @@ namespace Spatie\FlareClient\Enums {
         case Context = 'context';
         case Dump = 'dump';
         case Event = 'event';
-        case Exception = 'exception';
         case Filesystem = 'filesystem';
         case Glow = 'glow';
         case ExternalHttp = 'external_http';
         case Job = 'job';
-        case Log = 'log';
         case Notification = 'notification';
         case Null = 'null';
         case Query = 'query';
@@ -1018,11 +1023,15 @@ namespace Spatie\FlareClient\Enums {
         case Transaction = 'transaction';
         case View = 'view';
     }
-    enum SamplingType {
-        case Off;
-        case Sampling;
-        case Waiting;
-        case Disabled;
+    enum ResourceIncludeType: string {
+        case Base = 'Base';
+        case ComposerPackages = 'ComposerPackages';
+        case Host = 'Host';
+        case OperatingSystem = 'OperatingSystem';
+        case Process = 'Process';
+        case ProcessRuntime = 'ProcessRuntime';
+        case Git = 'Git';
+        case CustomAttributes = 'CustomAttributes';
     }
     enum SpanEventType: string implements \Spatie\FlareClient\Contracts\FlareSpanEventType {
         case Log = 'php_log';
@@ -1055,6 +1064,8 @@ namespace Spatie\FlareClient\Enums {
         case View = 'php_view';
         case HttpRequest = 'php_http_request';
         case Filesystem = 'php_filesystem';
+        case Job = 'laravel_job';
+        case QueueingJob = 'laravel_queueing';
         case Application = 'php_application';
         case ApplicationRegistration = 'php_application_registration';
         case ApplicationBoot = 'php_application_boot';
@@ -1071,49 +1082,93 @@ namespace Spatie\FlareClient\Enums {
         case RolledBack = 'rolled_back';
     }
 }
+namespace Spatie\FlareClient\Exporters {
+    interface Exporter {
+        /**
+        * @param array<int, \Spatie\FlareClient\Spans\Span> $spans
+        * @generated
+        */
+        public function traces(resource $resource, \Spatie\FlareClient\Scopes\Scope $scope, array<int, \Spatie\FlareClient\Spans\Span> $spans): mixed;
+        /**
+        * @param array<int, array> $logs
+        * @generated
+        */
+        public function logs(resource $resource, \Spatie\FlareClient\Scopes\Scope $scope, array<int, array> $logs): mixed;
+        public function report(\Spatie\FlareClient\ReportFactory $report): mixed;
+    }
+    class OpenTelemetryJsonExporter implements \Spatie\FlareClient\Exporters\Exporter {
+        protected \Spatie\FlareClient\Support\OpenTelemetryAttributeMapper $attributeMapper;
+        public function __construct(\Spatie\FlareClient\Support\OpenTelemetryAttributeMapper $attributeMapper): void;
+        /**
+        * @param array<int, \Spatie\FlareClient\Spans\Span> $spans
+        * @generated
+        */
+        public function traces(resource $resource, \Spatie\FlareClient\Scopes\Scope $scope, array<int, \Spatie\FlareClient\Spans\Span> $spans): array;
+        public function logs(resource $resource, \Spatie\FlareClient\Scopes\Scope $scope, array $logs): mixed;
+        public function report(\Spatie\FlareClient\ReportFactory $report): mixed;
+        protected function exportResource(resource $resource, \Spatie\FlareClient\Enums\FlareEntityType $entityType): array;
+        /**
+        * @return array
+        * @generated
+        */
+        protected function exportScope(\Spatie\FlareClient\Scopes\Scope $scope): array;
+        protected function exportSpan(\Spatie\FlareClient\Spans\Span $span): array;
+        /**
+        * @param \Spatie\FlareClient\Spans\SpanEvent $spanEvent
+        * @return array
+        * @generated
+        */
+        protected function exportSpanEvent(\Spatie\FlareClient\Spans\SpanEvent $spanEvent): array;
+    }
+}
 namespace Spatie\FlareClient\FlareMiddleware {
     class AddConsoleInformation implements \Spatie\FlareClient\FlareMiddleware\FlareMiddleware {
-        protected \Spatie\FlareClient\AttributesProviders\ConsoleAttributesProvider $consoleAttributesProvider;
-        public static function register(\Psr\Container\ContainerInterface $container, array $config): \Closure;
-        public function __construct(\Spatie\FlareClient\AttributesProviders\ConsoleAttributesProvider $consoleAttributesProvider = null): void;
         public function handle(\Spatie\FlareClient\ReportFactory $report, \Closure $next): \Spatie\FlareClient\ReportFactory;
         protected function isRunningInConsole(): bool;
     }
-    class AddGitInformation implements \Spatie\FlareClient\FlareMiddleware\FlareMiddleware {
-        public const bool DEFAULT_USE_PROCESS ?? false;
-        protected bool $useProcess;
-        protected \Spatie\FlareClient\AttributesProviders\GitAttributesProvider $gitAttributesProvider;
-        protected array $config;
-        public static function register(\Psr\Container\ContainerInterface $container, array $config): \Closure;
-        public function __construct(\Spatie\FlareClient\AttributesProviders\GitAttributesProvider $gitAttributesProvider, array $config): void;
+    class AddEntryPoint implements \Spatie\FlareClient\FlareMiddleware\FlareMiddleware {
+        protected \Spatie\FlareClient\EntryPoint\EntryPointResolver $entryPointResolver;
+        public function __construct(\Spatie\FlareClient\EntryPoint\EntryPointResolver $entryPointResolver): void;
         public function handle(\Spatie\FlareClient\ReportFactory $report, \Closure $next): \Spatie\FlareClient\ReportFactory;
     }
-    class AddRecordedEntries implements \Spatie\FlareClient\FlareMiddleware\FlareMiddleware {
-        public array<\Spatie\FlareClient\Contracts\Recorders\Recorder> $recorders;
-        /**
-        * @param array<\Spatie\FlareClient\Contracts\Recorders\Recorder> $recorders
-        * @generated
-        */
-        public function __construct(array<\Spatie\FlareClient\Contracts\Recorders\Recorder> $recorders): void;
+    class AddJobInformation implements \Spatie\FlareClient\FlareMiddleware\FlareMiddleware {
+        public static ?string $usedTrackingUuid ?? null;
+        public static ?\Spatie\FlareClient\Spans\Span $latestJob ?? null;
+        public static ?\Spatie\FlareClient\EntryPoint\EntryPoint $entryPoint ?? null;
+        public function handle(\Spatie\FlareClient\ReportFactory $report, \Closure $next): \Spatie\FlareClient\ReportFactory;
+        public static function clearLatestJobInfo(): void;
+        public static function setLatestJob(\Spatie\FlareClient\Spans\Span $job): void;
+        public static function setUsedTrackingUuid(string $uuid): void;
+        public static function setEntryPoint(\Spatie\FlareClient\EntryPoint\EntryPoint $entryPoint): void;
+    }
+    class AddLogs implements \Spatie\FlareClient\FlareMiddleware\FlareMiddleware {
+        public const int DEFAULT_MAX_LOGS_WITH_ERRORS ?? 100;
+        public const mixed DEFAULT_MINIMAL_LOG_LEVEL_WITH_ERRORS ?? \Monolog\Level::Info;
+        protected \Spatie\FlareClient\Logger $logger;
+        protected array $config;
+        public function __construct(\Spatie\FlareClient\Logger $logger, array $config): void;
         public function handle(\Spatie\FlareClient\ReportFactory $report, \Closure $next): \Spatie\FlareClient\ReportFactory;
     }
     class AddRequestInformation implements \Spatie\FlareClient\FlareMiddleware\FlareMiddleware {
-        protected \Spatie\FlareClient\AttributesProviders\RequestAttributesProvider $attributesProvider;
-        public static function register(\Psr\Container\ContainerInterface $container, array $config): \Closure;
-        public function __construct(\Spatie\FlareClient\AttributesProviders\RequestAttributesProvider $attributesProvider): void;
+        protected \Spatie\FlareClient\Support\Redactor $redactor;
+        public function __construct(\Spatie\FlareClient\Support\Redactor $redactor): void;
         public function handle(\Spatie\FlareClient\ReportFactory $report, \Closure $next): \Spatie\FlareClient\ReportFactory;
         protected function isRunningInConsole(): bool;
         protected function getAttributes(): array;
     }
-    class AddSolutions implements \Spatie\FlareClient\FlareMiddleware\FlareMiddleware {
-        protected \Spatie\ErrorSolutions\Contracts\SolutionProviderRepository $solutionProviderRepository;
-        public static function register(\Psr\Container\ContainerInterface $container, array $config): \Closure;
-        public function __construct(\Spatie\ErrorSolutions\Contracts\SolutionProviderRepository $solutionProviderRepository): void;
-        public function handle(\Spatie\FlareClient\ReportFactory $report, \Closure $next): \Spatie\FlareClient\ReportFactory;
-        public function boot(\Psr\Container\ContainerInterface|\Spatie\FlareClient\Support\Container $container): void;
-    }
     interface FlareMiddleware {
         public function handle(\Spatie\FlareClient\ReportFactory $report, \Closure $next): \Spatie\FlareClient\ReportFactory;
+    }
+}
+namespace Spatie\FlareClient\Memory {
+    interface Memory {
+        public function getPeakMemoryUsage(): int;
+        public function resetPeakMemoryUsage(): void;
+    }
+    class SystemMemory implements \Spatie\FlareClient\Memory\Memory {
+        public function getPeakMemoryUsage(): int;
+        public function resetPeakMemoryUsage(): void;
+        public static function phpVersionCanTrackMemory(): bool;
     }
 }
 namespace Spatie\FlareClient\Recorders {
@@ -1136,14 +1191,13 @@ namespace Spatie\FlareClient\Recorders {
         public const null DEFAULT_FIND_ORIGIN_THRESHOLD ?? null;
     }
     abstract class SpanEventsRecorder extends \Spatie\FlareClient\Recorders\Recorder implements \Spatie\FlareClient\Contracts\Recorders\SpanEventsRecorder {
-        use \Spatie\FlareClient\Concerns\Recorders\BacktracingRecorder, \Spatie\FlareClient\Concerns\Recorders\ErrorsRecorder, \Spatie\FlareClient\Concerns\Recorders\TracingRecorder;
+        use \Spatie\FlareClient\Concerns\Recorders\LargeAttributesTrimmingRecorder, \Spatie\FlareClient\Concerns\Recorders\BacktracingRecorder, \Spatie\FlareClient\Concerns\Recorders\ErrorsRecorder, \Spatie\FlareClient\Concerns\Recorders\TracingRecorder;
         protected \Spatie\FlareClient\Tracer $tracer;
         protected \Spatie\FlareClient\Support\BackTracer $backTracer;
         /**
         * @use ErrorsRecorder<SpanEvent>
         * @generated
         */
-        public static function register(\Psr\Container\ContainerInterface $container, array $config): \Closure;
         public function __construct(\Spatie\FlareClient\Tracer $tracer, \Spatie\FlareClient\Support\BackTracer $backTracer, array $config): void;
         protected function configure(array $config): void;
         public function boot(): void;
@@ -1160,10 +1214,16 @@ namespace Spatie\FlareClient\Recorders {
         public final function getSpanEvents(): array;
     }
     abstract class SpansRecorder extends \Spatie\FlareClient\Recorders\Recorder implements \Spatie\FlareClient\Contracts\Recorders\SpansRecorder {
-        use \Spatie\FlareClient\Concerns\Recorders\BacktracingRecorder, \Spatie\FlareClient\Concerns\Recorders\ErrorsRecorder, \Spatie\FlareClient\Concerns\Recorders\TracingRecorder;
+        use \Spatie\FlareClient\Concerns\Recorders\LargeAttributesTrimmingRecorder, \Spatie\FlareClient\Concerns\Recorders\BacktracingRecorder, \Spatie\FlareClient\Concerns\Recorders\ErrorsRecorder, \Spatie\FlareClient\Concerns\Recorders\TracingRecorder;
+        /**
+        * @var array<\Spatie\FlareClient\Spans\Span>
+        * @generated
+        */
+        protected array<\Spatie\FlareClient\Spans\Span> $stack ?? [];
+        protected static ?\Spatie\FlareClient\Recorders\SpansRecorder $pauseOwner ?? null;
+        protected static int $pauseDepth ?? 0;
         protected \Spatie\FlareClient\Tracer $tracer;
         protected \Spatie\FlareClient\Support\BackTracer $backTracer;
-        public static function register(\Psr\Container\ContainerInterface $container, array $config): \Closure;
         public function __construct(\Spatie\FlareClient\Tracer $tracer, \Spatie\FlareClient\Support\BackTracer $backTracer, array $config): void;
         protected function configure(array $config): void;
         public function boot(): void;
@@ -1172,18 +1232,16 @@ namespace Spatie\FlareClient\Recorders {
         * @param \Closure|array $attributes
         * @param ?\Closure $nameAndAttributes
         * @param ?int $time
-        * @param ?string $parentId
         * @return ?\Spatie\FlareClient\Spans\Span
         * @generated
         */
-        protected final function startSpan(\Closure|string|null $name = null, \Closure|array $attributes = [], ?\Closure $nameAndAttributes = null, ?int $time = null, ?string $parentId = null, bool $canStartTrace = false): ?\Spatie\FlareClient\Spans\Span;
-        protected final function potentiallyResumeTrace(?string $traceParent): bool;
+        protected final function startSpan(\Closure|string|null $name = null, \Closure|array $attributes = [], ?\Closure $nameAndAttributes = null, ?int $time = null): ?\Spatie\FlareClient\Spans\Span;
         /**
         * @param ?\Closure $spanCallback
         * @param \Closure|array $additionalAttributes
         * @generated
         */
-        protected final function endSpan(?int $time = null, \Closure|array $additionalAttributes = [], ?\Closure $spanCallback = null): ?\Spatie\FlareClient\Spans\Span;
+        protected final function endSpan(?int $time = null, \Closure|array $additionalAttributes = [], ?\Closure $spanCallback = null, bool $includeMemoryUsage = false): ?\Spatie\FlareClient\Spans\Span;
         /**
         * @param \Closure|string|null $name
         * @param \Closure|array $attributes
@@ -1192,29 +1250,10 @@ namespace Spatie\FlareClient\Recorders {
         * @param ?\Closure $spanCallback
         * @generated
         */
-        protected final function span(\Closure|string|null $name = null, \Closure|array $attributes = [], ?\Closure $nameAndAttributes = null, ?int $start = null, ?int $end = null, ?int $duration = null, ?string $parentId = null, ?\Closure $additionalAttributes = null, ?\Closure $spanCallback = null, bool $canStartTrace = false): ?\Spatie\FlareClient\Spans\Span;
+        protected final function span(\Closure|string|null $name = null, \Closure|array $attributes = [], ?\Closure $nameAndAttributes = null, ?int $start = null, ?int $end = null, ?int $duration = null, ?\Closure $additionalAttributes = null, ?\Closure $spanCallback = null, bool $includeMemoryUsage = false): ?\Spatie\FlareClient\Spans\Span;
         public final function getSpans(): array;
-    }
-}
-namespace Spatie\FlareClient\Recorders\ApplicationRecorder {
-    class ApplicationRecorder extends \Spatie\FlareClient\Recorders\SpansRecorder {
-        protected bool $running ?? false;
-        protected bool $registering ?? false;
-        protected bool $booting ?? false;
-        protected bool $terminating ?? false;
-        protected function configure(array $config): void;
-        public static function type(): string|\Spatie\FlareClient\Enums\RecorderType;
-        public function recordStart(array $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\Span;
-        public function recordRegistering(array $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\Span;
-        public function recordRegistered(array $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\Span;
-        public function recordRegistration(array $attributes = [], ?int $start = null, ?int $end = null, ?int $duration = null): ?\Spatie\FlareClient\Spans\Span;
-        public function recordBooting(array $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\Span;
-        public function recordBooted(array $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\Span;
-        public function recordBoot(array $attributes = [], ?int $start = null, ?int $end = null, ?int $duration = null): ?\Spatie\FlareClient\Spans\Span;
-        public function recordTerminating(array $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\Span;
-        public function recordTerminated(array $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\Span;
-        public function recordTermination(array $attributes = [], ?int $start = null, ?int $end = null, ?int $duration = null): ?\Spatie\FlareClient\Spans\Span;
-        public function recordEnd(array $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\Span;
+        public static function resetPauseState(): void;
+        protected function pauseTrace(): void;
     }
 }
 namespace Spatie\FlareClient\Recorders\CacheRecorder {
@@ -1225,6 +1264,11 @@ namespace Spatie\FlareClient\Recorders\CacheRecorder {
         * @generated
         */
         protected array<\Spatie\FlareClient\Enums\CacheOperation|string> $operations ?? [];
+        /**
+        * @var array<int, string>
+        * @generated
+        */
+        protected array<int, string> $ignoredKeys ?? [];
         public static function type(): string|\Spatie\FlareClient\Enums\RecorderType;
         protected function configure(array $config): void;
         public function recordHit(string $key, ?string $store): ?\Spatie\FlareClient\Spans\SpanEvent;
@@ -1232,14 +1276,50 @@ namespace Spatie\FlareClient\Recorders\CacheRecorder {
         public function recordKeyWritten(string $key, ?string $store): ?\Spatie\FlareClient\Spans\SpanEvent;
         public function recordKeyForgotten(string $key, ?string $store): ?\Spatie\FlareClient\Spans\SpanEvent;
         public function record(string $key, ?string $store, \Spatie\FlareClient\Enums\CacheOperation $operation, \Spatie\FlareClient\Enums\CacheResult $result, array $attributes = []): ?\Spatie\FlareClient\Spans\SpanEvent;
+        protected function shouldIgnoreKey(string $key): bool;
+        /**
+        * @return array<int, string> Regexes, just like the user configured ignored keys
+        * @generated
+        */
+        protected function defaultIgnoredKeys(): array<int, string>;
     }
 }
 namespace Spatie\FlareClient\Recorders\CommandRecorder {
     class CommandRecorder extends \Spatie\FlareClient\Recorders\SpansRecorder {
+        /**
+        * @var array<int, string>
+        * @generated
+        */
+        protected array<int, string> $ignoredCommands ?? [];
+        /**
+        * @var array<int, string>
+        * @generated
+        */
+        protected array<int, string> $ignoredClasses ?? [];
+        protected \Spatie\FlareClient\EntryPoint\EntryPointResolver $entryPointResolver;
         public static function type(): string|\Spatie\FlareClient\Enums\RecorderType;
-        public function recordStart(string $command, array|\Symfony\Component\Console\Input\InputInterface $arguments, ?string $entryPointClass = null, array $attributes = []): ?\Spatie\FlareClient\Spans\Span;
+        public function __construct(\Spatie\FlareClient\Tracer $tracer, \Spatie\FlareClient\Support\BackTracer $backTracer, \Spatie\FlareClient\EntryPoint\EntryPointResolver $entryPointResolver, array $config): void;
+        protected function configure(array $config): void;
+        public function recordStart(\Spatie\FlareClient\Contracts\CommandAttributesProvider $commandAttributesProvider, array $attributes = []): ?\Spatie\FlareClient\Spans\Span;
+        /**
+        * @param array<int, string> $arguments
+        * @generated
+        */
+        public function recordStartFromDefined(string $command, array<int, string> $arguments, ?string $commandClass = null, array $attributes = []): ?\Spatie\FlareClient\Spans\Span;
+        public function recordStartFromCli(string $command, ?string $commandClass = null, array $attributes = []): ?\Spatie\FlareClient\Spans\Span;
+        public function recordStartFromSymfonyInput(string $command, \Symfony\Component\Console\Input\InputInterface $input, ?string $commandClass = null, array $attributes = []): ?\Spatie\FlareClient\Spans\Span;
+        protected function shouldIgnoreCommand(string $command, ?string $commandClass = null): bool;
         public function recordEnd(int $exitCode = 0, array $attributes = []): ?\Spatie\FlareClient\Spans\Span;
-        protected function getArguments(?\Symfony\Component\Console\Input\InputInterface $input): array;
+        /**
+        * @return array<int, string>
+        * @generated
+        */
+        protected function defaultIgnoredCommands(): array<int, string>;
+        /**
+        * @return array<int, string>
+        * @generated
+        */
+        protected function defaultIgnoredCommandClasses(): array<int, string>;
     }
 }
 namespace Spatie\FlareClient\Recorders\ContextRecorder {
@@ -1256,8 +1336,7 @@ namespace Spatie\FlareClient\Recorders\ContextRecorder {
         public static function type(): string|\Spatie\FlareClient\Enums\RecorderType;
         public function boot(): void;
         public function reset(): void;
-        public function resetContext(): void;
-        public function context(string $group, string|array $key, mixed $value = null): self;
+        public function record(string $group, string|array $key, mixed $value = null): self;
         /**
         * @return array<string, ContextRecorderContextArray>
         * @generated
@@ -1302,48 +1381,35 @@ namespace Spatie\FlareClient\Recorders\DumpRecorder {
         public function addHandler(?callable $callable = null): self;
     }
 }
-namespace Spatie\FlareClient\Recorders\ErrorRecorder {
-    class ErrorRecorder extends \Spatie\FlareClient\Recorders\SpanEventsRecorder {
-        public const bool DEFAULT_WITH_TRACES ?? true;
-        public const bool DEFAULT_WITH_ERRORS ?? false;
-        protected function configure(array $config): void;
-        public static function type(): string|\Spatie\FlareClient\Enums\RecorderType;
-        public function record(\Spatie\FlareClient\Report $report): void;
-    }
-    class ErrorSpanEvent extends \Spatie\FlareClient\Spans\SpanEvent {
-        public string $message;
-        public string $class;
-        public ?bool $handled;
-        public ?string $id ?? null;
-        public \Spatie\FlareClient\Enums\SpanEventType $spanEventType ?? \Spatie\FlareClient\Enums\SpanEventType::Exception;
-        public function __construct(string $message, string $class, ?bool $handled, int $timeUs, ?string $id = null, \Spatie\FlareClient\Enums\SpanEventType $spanEventType = \Spatie\FlareClient\Enums\SpanEventType::Exception): void;
-        public static function fromReport(\Spatie\FlareClient\Report $report, int $timeUs): self;
-        public static function fromThrowable(\Throwable $throwable, int $timeUs): self;
-        protected function collectAttributes(): array;
-    }
-}
 namespace Spatie\FlareClient\Recorders\ExternalHttpRecorder {
     class ExternalHttpRecorder extends \Spatie\FlareClient\Recorders\SpansRecorder {
         protected \Spatie\FlareClient\Support\Redactor $redactor;
-        public static function register(\Psr\Container\ContainerInterface $container, array $config): \Closure;
         public function __construct(\Spatie\FlareClient\Tracer $tracer, \Spatie\FlareClient\Support\BackTracer $backTracer, array $config, \Spatie\FlareClient\Support\Redactor $redactor): void;
         public static function type(): \Spatie\FlareClient\Enums\RecorderType;
         public function recordSending(string $url, string $method, ?int $bodySize = null, array $headers = [], array $attributes = []): ?\Spatie\FlareClient\Spans\Span;
-        public function recordReceived(int $responseCode, ?int $responseBodySize = null, array $responseHeaders = []): ?\Spatie\FlareClient\Spans\Span;
+        public function recordReceived(int $responseCode, ?int $responseBodySize = null, array $responseHeaders = [], ?string $errorType = null): ?\Spatie\FlareClient\Spans\Span;
         public function recordConnectionFailed(string $errorType): ?\Spatie\FlareClient\Spans\Span;
     }
 }
 namespace Spatie\FlareClient\Recorders\ExternalHttpRecorder\Guzzle {
-    class FlareHandlerStack extends \GuzzleHttp\HandlerStack {
-        public function __construct(\Spatie\FlareClient\Flare $flare, ?callable $handler = null): void;
+    class FlareHandlerStack {
+        /**
+        * @param callable|null $handler
+        * @return \GuzzleHttp\HandlerStack
+        * @generated
+        */
+        public static function create(\Spatie\FlareClient\Flare $flare, callable|null $handler = null): \GuzzleHttp\HandlerStack;
     }
     class FlareMiddleware {
         protected \Spatie\FlareClient\Flare $flare;
         public function __construct(\Spatie\FlareClient\Flare $flare): void;
-        public function __invoke(callable $handler): callable;
-        protected function onSuccess(): callable;
-        protected function onError(): callable;
-        protected function getHeaders(\Psr\Http\Message\RequestInterface|\Psr\Http\Message\ResponseInterface $requestResponse): array;
+        public function __invoke(callable $handler): \Closure;
+        protected function recordFulfilled(): \Closure;
+        protected function recordRejected(): \Closure;
+        protected function recordFailure(mixed $reason): void;
+        protected function responseFromFailure(mixed $reason): ?\Psr\Http\Message\ResponseInterface;
+        protected function getBodySize(\Psr\Http\Message\ResponseInterface $response): ?int;
+        protected function getHeaders(\Psr\Http\Message\MessageInterface $message): array;
     }
 }
 namespace Spatie\FlareClient\Recorders\FilesystemRecorder {
@@ -1376,31 +1442,79 @@ namespace Spatie\FlareClient\Recorders\FilesystemRecorder {
 namespace Spatie\FlareClient\Recorders\GlowRecorder {
     class GlowRecorder extends \Spatie\FlareClient\Recorders\SpanEventsRecorder {
         public static function type(): string|\Spatie\FlareClient\Enums\RecorderType;
-        public function record(string $name, \Spatie\FlareClient\Enums\MessageLevels $level = \Spatie\FlareClient\Enums\MessageLevels::Info, array $context = [], array $attributes = []): ?\Spatie\FlareClient\Spans\SpanEvent;
+        protected function shouldTrimAttributes(): bool;
+        public function record(string $name, \Monolog\Level $level = \Monolog\Level::Info, array $context = [], array $attributes = []): ?\Spatie\FlareClient\Spans\SpanEvent;
     }
 }
-namespace Spatie\FlareClient\Recorders\LogRecorder {
-    class LogRecorder extends \Spatie\FlareClient\Recorders\SpanEventsRecorder {
-        public const mixed DEFAULT_MINIMAL_LEVEL ?? \Spatie\FlareClient\Enums\MessageLevels::Debug;
-        protected \Spatie\FlareClient\Enums\MessageLevels $minimalLevel;
-        protected function configure(array $config): void;
+namespace Spatie\FlareClient\Recorders\JobRecorder {
+    class JobRecorder extends \Spatie\FlareClient\Recorders\SpansRecorder {
+        /**
+        * @var array<int, string>
+        * @generated
+        */
+        protected array<int, string> $ignoredClasses ?? [];
+        protected \Spatie\FlareClient\EntryPoint\EntryPointResolver $entryPointResolver;
+        protected \Spatie\FlareClient\Support\Lifecycle $lifecycle;
         public static function type(): string|\Spatie\FlareClient\Enums\RecorderType;
-        public function record(?string $message, \Spatie\FlareClient\Enums\MessageLevels $level = \Spatie\FlareClient\Enums\MessageLevels::Info, array $context = [], array $attributes = []): ?\Spatie\FlareClient\Spans\SpanEvent;
+        public function __construct(\Spatie\FlareClient\Tracer $tracer, \Spatie\FlareClient\Support\BackTracer $backTracer, \Spatie\FlareClient\EntryPoint\EntryPointResolver $entryPointResolver, \Spatie\FlareClient\Support\Lifecycle $lifecycle, array $config): void;
+        protected function configure(array $config): void;
+        public function recordStart(\Spatie\FlareClient\Contracts\JobAttributesProvider $jobAttributesProvider, ?string $traceparent = null, array $attributes = []): ?\Spatie\FlareClient\Spans\Span;
+        public function recordStartFromJob(string $jobName, ?string $jobClass = null, ?string $traceparent = null, array $attributes = []): ?\Spatie\FlareClient\Spans\Span;
+        public function recordEnd(array $attributes = []): ?\Spatie\FlareClient\Spans\Span;
+        public function recordFailed(\Throwable $exception, array $attributes = []): ?\Spatie\FlareClient\Spans\Span;
+        protected function shouldIgnoreJob(string $jobName, ?string $jobClass = null): bool;
+        /**
+        * @return array<int, string>
+        * @generated
+        */
+        protected function defaultIgnoredJobNames(): array<int, string>;
+        /**
+        * @return array<int, string>
+        * @generated
+        */
+        protected function defaultIgnoredJobClasses(): array<int, string>;
     }
 }
 namespace Spatie\FlareClient\Recorders\QueryRecorder {
     class QueryRecorder extends \Spatie\FlareClient\Recorders\SpansRecorder {
         public const bool DEFAULT_INCLUDE_BINDINGS ?? true;
         public const bool DEFAULT_FIND_ORIGIN ?? true;
-        public const int DEFAULT_FIND_ORIGIN_THRESHOLD ?? 300000;
+        public const int DEFAULT_FIND_ORIGIN_THRESHOLD ?? 100000000;
         protected bool $includeBindings ?? true;
         public static function type(): string|\Spatie\FlareClient\Enums\RecorderType;
         protected function configure(array $config): void;
+        protected function shouldTrimAttributes(): bool;
         public function record(string $sql, int $duration, ?array $bindings = null, ?string $databaseName = null, ?string $driverName = null, array $attributes = []): ?\Spatie\FlareClient\Spans\Span;
         public function recordStart(string $sql, ?array $bindings = null, ?string $databaseName = null, ?string $driverName = null, array $attributes = []): ?\Spatie\FlareClient\Spans\Span;
         public function recordEnd(array $attributes = []): ?\Spatie\FlareClient\Spans\Span;
         protected function resolveName(string $sql): string;
         protected function resolveAttributesClosure(string $sql, ?array $bindings, ?string $databaseName, ?string $driverName, array $attributes): \Closure;
+    }
+}
+namespace Spatie\FlareClient\Recorders\QueueRecorder {
+    class QueueRecorder extends \Spatie\FlareClient\Recorders\SpansRecorder {
+        /**
+        * @var array<int, string>
+        * @generated
+        */
+        protected array<int, string> $ignoredClasses ?? [];
+        public static function type(): string|\Spatie\FlareClient\Enums\RecorderType;
+        public function __construct(\Spatie\FlareClient\Tracer $tracer, \Spatie\FlareClient\Support\BackTracer $backTracer, array $config): void;
+        protected function configure(array $config): void;
+        public function recordStart(\Spatie\FlareClient\Contracts\QueuedJobAttributesProvider $provider, array $attributes = []): ?\Spatie\FlareClient\Spans\Span;
+        public function recordStartFromQueuedJob(string $jobName, ?string $jobClass = null, array $attributes = []): ?\Spatie\FlareClient\Spans\Span;
+        public function recordEnd(array $attributes = []): ?\Spatie\FlareClient\Spans\Span;
+        protected function shouldIgnoreJob(string $jobName, ?string $jobClass = null): bool;
+        /**
+        * @return array<int, string>
+        * @generated
+        */
+        protected function defaultIgnoredJobNames(): array<int, string>;
+        /**
+        * @return array<int, string>
+        * @generated
+        */
+        protected function defaultIgnoredJobClasses(): array<int, string>;
     }
 }
 namespace Spatie\FlareClient\Recorders\RedisCommandRecorder {
@@ -1415,13 +1529,43 @@ namespace Spatie\FlareClient\Recorders\RedisCommandRecorder {
 }
 namespace Spatie\FlareClient\Recorders\RequestRecorder {
     class RequestRecorder extends \Spatie\FlareClient\Recorders\SpansRecorder {
-        protected \Spatie\FlareClient\AttributesProviders\RequestAttributesProvider $requestAttributesProvider;
+        /**
+        * @var array<int, string>
+        * @generated
+        */
+        protected array<int, string> $ignoredUrls ?? [];
+        /**
+        * @var array<int, string>
+        * @generated
+        */
+        protected array<int, string> $ignoredPaths ?? [];
+        protected \Spatie\FlareClient\Support\Redactor $redactor;
+        protected \Spatie\FlareClient\EntryPoint\EntryPointResolver $entryPointResolver;
         public static function type(): string|\Spatie\FlareClient\Enums\RecorderType;
-        public static function register(\Psr\Container\ContainerInterface $container, array $config): \Closure;
-        public function __construct(\Spatie\FlareClient\Tracer $tracer, \Spatie\FlareClient\Support\BackTracer $backTracer, array $config, \Spatie\FlareClient\AttributesProviders\RequestAttributesProvider $requestAttributesProvider): void;
+        public function __construct(\Spatie\FlareClient\Tracer $tracer, \Spatie\FlareClient\Support\BackTracer $backTracer, \Spatie\FlareClient\Support\Redactor $redactor, \Spatie\FlareClient\EntryPoint\EntryPointResolver $entryPointResolver, array $config): void;
         protected function configure(array $config): void;
-        public function recordStart(?\Symfony\Component\HttpFoundation\Request $request = null, ?string $route = null, ?string $entryPointClass = null, array $attributes = []): ?\Spatie\FlareClient\Spans\Span;
-        public function recordEnd(?int $responseStatusCode = null, ?int $responseBodySize = null, array $attributes = []): ?\Spatie\FlareClient\Spans\Span;
+        public function recordStart(\Spatie\FlareClient\Contracts\RequestAttributesProvider $requestAttributesProvider, array $attributes = []): ?\Spatie\FlareClient\Spans\Span;
+        public function recordStartFromSymfonyRequest(\Symfony\Component\HttpFoundation\Request $request, array $attributes = []): ?\Spatie\FlareClient\Spans\Span;
+        public function recordStartFromGlobals(array $attributes = []): ?\Spatie\FlareClient\Spans\Span;
+        public function recordEnd(?\Spatie\FlareClient\Contracts\RequestAttributesProvider $requestAttributesProvider = null, ?\Spatie\FlareClient\Contracts\ResponseAttributesProvider $responseAttributesProvider = null, ?\Spatie\FlareClient\Contracts\RouteAttributesProvider $routeAttributesProvider = null, ?\Spatie\FlareClient\AttributesProviders\UserAttributesProvider $userAttributesProvider = null, array $attributes = []): ?\Spatie\FlareClient\Spans\Span;
+        public function recordEndFromSymfonyResponse(\Symfony\Component\HttpFoundation\Response $response, ?\Symfony\Component\HttpFoundation\Request $request = null, ?\Spatie\FlareClient\Contracts\RouteAttributesProvider $routeAttributesProvider = null, ?\Spatie\FlareClient\AttributesProviders\UserAttributesProvider $userAttributesProvider = null, array $attributes = []): ?\Spatie\FlareClient\Spans\Span;
+        /**
+        * @param array<string, string> $headers
+        * @generated
+        */
+        public function recordEndFromDefined(?int $statusCode = null, ?int $bodySize = null, array<string, string> $headers = [], array $attributes = []): ?\Spatie\FlareClient\Spans\Span;
+        protected function shouldIgnoreUrl(string $url): bool;
+        protected function shouldIgnorePath(?string $path): bool;
+        /**
+        * @return array<int, string>
+        * @generated
+        */
+        protected function defaultIgnoredUrls(): array<int, string>;
+        /**
+        * @return array<int, string>
+        * @generated
+        */
+        protected function defaultIgnoredPaths(): array<int, string>;
     }
 }
 namespace Spatie\FlareClient\Recorders\ResponseRecorder {
@@ -1441,13 +1585,22 @@ namespace Spatie\FlareClient\Recorders\RoutingRecorder {
         protected bool $routing ?? false;
         protected bool $afterMiddleware ?? false;
         protected bool $globalAfterMiddleware ?? false;
+        /**
+        * @var array<int, string>
+        * @generated
+        */
+        protected array<int, string> $ignoredRoutes ?? [];
+        protected \Spatie\FlareClient\EntryPoint\EntryPointResolver $entryPointResolver;
+        public function __construct(\Spatie\FlareClient\Tracer $tracer, \Spatie\FlareClient\Support\BackTracer $backTracer, \Spatie\FlareClient\EntryPoint\EntryPointResolver $entryPointResolver, array $config): void;
         protected function configure(array $config): void;
         public static function type(): string|\Spatie\FlareClient\Enums\RecorderType;
         public function recordGlobalBeforeMiddlewareStart(array $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\Span;
         public function recordGlobalBeforeMiddlewareEnd(array $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\Span;
         public function recordGlobalBeforeMiddleware(array $attributes = [], ?int $start = null, ?int $end = null, ?int $duration = null): ?\Spatie\FlareClient\Spans\Span;
         public function recordRoutingStart(array $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\Span;
-        public function recordRoutingEnd(array $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\Span;
+        public function recordRoutingEnd(\Spatie\FlareClient\Contracts\RouteAttributesProvider $routeAttributesProvider, array $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\Span;
+        public function recordRoutingEndFromDefined(string $route, ?string $method = null, ?string $handlerName = null, array $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\Span;
+        protected function recordForcedRoutingEnd(array $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\Span;
         public function recordRouting(array $attributes = [], ?int $start = null, ?int $end = null, ?int $duration = null): ?\Spatie\FlareClient\Spans\Span;
         public function recordBeforeMiddlewareStart(array $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\Span;
         public function recordBeforeMiddlewareEnd(array $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\Span;
@@ -1458,6 +1611,12 @@ namespace Spatie\FlareClient\Recorders\RoutingRecorder {
         public function recordGlobalAfterMiddlewareStart(array $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\Span;
         public function recordGlobalAfterMiddlewareEnd(array $attributes = [], ?int $time = null): ?\Spatie\FlareClient\Spans\Span;
         public function recordGlobalAfterMiddleware(array $attributes = [], ?int $start = null, ?int $end = null, ?int $duration = null): ?\Spatie\FlareClient\Spans\Span;
+        protected function shouldIgnoreRoute(string $route): bool;
+        /**
+        * @return array<int, string>
+        * @generated
+        */
+        protected function defaultIgnoredRoutes(): array<int, string>;
     }
 }
 namespace Spatie\FlareClient\Recorders\TransactionRecorder {
@@ -1471,7 +1630,6 @@ namespace Spatie\FlareClient\Recorders\TransactionRecorder {
 namespace Spatie\FlareClient\Recorders\ViewRecorder {
     class ViewRecorder extends \Spatie\FlareClient\Recorders\SpansRecorder {
         protected \Spatie\Backtrace\Arguments\ArgumentReducers|null $argumentReducers;
-        public static function register(\Psr\Container\ContainerInterface $container, array $config): \Closure;
         public function __construct(\Spatie\FlareClient\Tracer $tracer, \Spatie\FlareClient\Support\BackTracer $backTracer, \Spatie\Backtrace\Arguments\ArgumentReducers|null $argumentReducers, array $config): void;
         public static function type(): string|\Spatie\FlareClient\Enums\RecorderType;
         protected function configure(array $config): void;
@@ -1482,6 +1640,27 @@ namespace Spatie\FlareClient\Recorders\ViewRecorder {
 namespace Spatie\FlareClient\Resources {
     class Resource implements \Spatie\FlareClient\Contracts\WithAttributes {
         use \Spatie\FlareClient\Concerns\HasAttributes;
+        public const array DEFAULT_HOST_ENTITY_TYPES ?? [];
+        public const array DEFAULT_OS_ENTITY_TYPES ?? [];
+        public const array DEFAULT_PHP_ENTITY_TYPES ?? [];
+        public const array DEFAULT_COMPOSER_PACKAGES_ENTITY_TYPES ?? [];
+        public const array DEFAULT_GIT_ENTITY_TYPES ?? [];
+        public const bool DEFAULT_GIT_USE_PROCESS ?? false;
+        /**
+        * @var array<mixed, array<string, mixed>>
+        * @generated
+        */
+        protected array<mixed, array<string, mixed>> $includes ?? [];
+        /**
+        * @var array<mixed, array<string, mixed>>
+        * @generated
+        */
+        protected array<mixed, array<string, mixed>> $cachedIncludes ?? [];
+        public string $serviceName;
+        public ?string $serviceVersion ?? null;
+        public ?string $serviceStage ?? null;
+        public string $telemetrySdkName ?? \Spatie\FlareClient\Support\Telemetry::NAME;
+        public string $telemetrySdkVersion ?? 'unknown';
         /**
         * @param array $attributes <string, mixed>
         * @generated
@@ -1493,27 +1672,148 @@ namespace Spatie\FlareClient\Resources {
         public function telemetrySdkName(string $name): self;
         public function telemetrySdkVersion(string $version): self;
         public function composer(): self;
-        public function host(): self;
-        public function operatingSystem(): self;
-        public function process(): self;
-        public function processRuntime(): self;
-        public function git(\Spatie\FlareClient\AttributesProviders\GitAttributesProvider $attributesProvider, bool $useProcess): self;
+        public function composerPackages(array $entityTypes = self::DEFAULT_COMPOSER_PACKAGES_ENTITY_TYPES): self;
+        public function host(array $entityTypes = self::DEFAULT_HOST_ENTITY_TYPES): self;
+        public function operatingSystem(array $entityTypes = self::DEFAULT_OS_ENTITY_TYPES): self;
+        public function process(array $entityTypes = self::DEFAULT_PHP_ENTITY_TYPES): self;
+        public function processRuntime(array $entityTypes = self::DEFAULT_PHP_ENTITY_TYPES): self;
+        public function git(\Spatie\FlareClient\AttributesProviders\GitAttributesProvider $attributesProvider, array $entityTypes = self::DEFAULT_GIT_ENTITY_TYPES): self;
+        public function export(\Spatie\FlareClient\Enums\FlareEntityType $type): array;
+        /**
+        * @param \Spatie\FlareClient\Enums\ResourceIncludeType|string $includeType
+        * @param array<int, \Spatie\FlareClient\Enums\FlareEntityType> $entityTypes
+        * @param array<string, mixed> $arguments
+        * @return self
+        * @generated
+        */
+        protected function addInclude(\Spatie\FlareClient\Enums\ResourceIncludeType|string $includeType, array<int, \Spatie\FlareClient\Enums\FlareEntityType> $entityTypes, array<string, mixed> $arguments = []): self;
+        protected function resolveBase(): array;
+        protected function resolveCustomAttributes(): array;
+        protected function resolveComposerPackages(): array;
+        protected function resolveHost(): array;
+        protected function resolveOperatingSystem(): array;
+        protected function resolveProcess(): array;
+        protected function resolveProcessRuntime(): array;
+        public function resolveGit(\Spatie\FlareClient\AttributesProviders\GitAttributesProvider $attributesProvider): array;
     }
 }
 namespace Spatie\FlareClient\Sampling {
     class AlwaysSampler implements \Spatie\FlareClient\Sampling\Sampler {
-        public function shouldSample(array $context): bool;
+        public function shouldSample(\Spatie\FlareClient\EntryPoint\EntryPoint $entryPoint, ?bool $parentSampled = null): bool;
+    }
+    interface DeferrableSampler extends \Spatie\FlareClient\Sampling\Sampler {
+        public function isDeferred(): bool;
+        public function reevaluate(\Spatie\FlareClient\EntryPoint\EntryPoint $entryPoint): bool;
+        public function reset(): void;
+    }
+    interface DeferredSamplerRule {
+    }
+    class DynamicSampler extends \Spatie\FlareClient\Sampling\RateSampler implements \Spatie\FlareClient\Sampling\DeferrableSampler {
+        /**
+        * @var array<SamplingRule>
+        * @generated
+        */
+        protected array<\Spatie\FlareClient\Sampling\SamplingRule> $rules;
+        protected bool $deferred ?? false;
+        protected ?bool $parentSampled ?? null;
+        /**
+        * @param array $config
+        * @generated
+        */
+        public function __construct(array $config): void;
+        public function shouldSample(\Spatie\FlareClient\EntryPoint\EntryPoint $entryPoint, ?bool $parentSampled = null): bool;
+        public function isDeferred(): bool;
+        public function reevaluate(\Spatie\FlareClient\EntryPoint\EntryPoint $entryPoint): bool;
+        public function reset(): void;
     }
     class NeverSampler implements \Spatie\FlareClient\Sampling\Sampler {
-        public function shouldSample(array $context): bool;
+        public function shouldSample(\Spatie\FlareClient\EntryPoint\EntryPoint $entryPoint, ?bool $parentSampled = null): bool;
     }
     class RateSampler implements \Spatie\FlareClient\Sampling\Sampler {
         protected float $rate;
         public function __construct(array $config): void;
-        public function shouldSample(array $context): bool;
+        public function shouldSample(\Spatie\FlareClient\EntryPoint\EntryPoint $entryPoint, ?bool $parentSampled = null): bool;
+        protected function decide(float $rate): bool;
+        protected function random(): float;
     }
     interface Sampler {
-        public function shouldSample(array $context): bool;
+        public function shouldSample(\Spatie\FlareClient\EntryPoint\EntryPoint $entryPoint, ?bool $parentSampled = null): bool;
+    }
+    abstract class SamplingRule {
+        public static function forUrl(string $pattern, float $rate): \Spatie\FlareClient\Sampling\Rules\UrlSamplingRule;
+        public static function forPath(string $pattern, float $rate): \Spatie\FlareClient\Sampling\Rules\PathSamplingRule;
+        public static function forRoute(string $pattern, float $rate): \Spatie\FlareClient\Sampling\Rules\RouteSamplingRule;
+        public static function forCommand(string $pattern, float $rate): \Spatie\FlareClient\Sampling\Rules\CommandSamplingRule;
+        public static function forJob(string $pattern, float $rate): \Spatie\FlareClient\Sampling\Rules\JobSamplingRule;
+        /**
+        * @param \Closure $closure
+        * @generated
+        */
+        public static function using(\Closure $closure): \Spatie\FlareClient\Sampling\Rules\ClosureSamplingRule;
+        /**
+        * @param \Closure $closure
+        * @generated
+        */
+        public static function usingDeferred(\Closure $closure): \Spatie\FlareClient\Sampling\Rules\DeferredClosureSamplingRule;
+        public abstract function appliesTo(\Spatie\FlareClient\Enums\EntryPointType $entryPointType): bool;
+        public abstract function getMatchedRate(\Spatie\FlareClient\EntryPoint\EntryPoint $entryPoint): ?float;
+    }
+}
+namespace Spatie\FlareClient\Sampling\Rules {
+    class ClosureSamplingRule extends \Spatie\FlareClient\Sampling\SamplingRule {
+        protected \Closure $closure;
+        /**
+        * @param \Closure $closure
+        * @generated
+        */
+        public function __construct(\Closure $closure): void;
+        public function appliesTo(\Spatie\FlareClient\Enums\EntryPointType $entryPointType): bool;
+        public function getMatchedRate(\Spatie\FlareClient\EntryPoint\EntryPoint $entryPoint): ?float;
+    }
+    class CommandSamplingRule extends \Spatie\FlareClient\Sampling\SamplingRule implements \Spatie\FlareClient\Sampling\DeferredSamplerRule {
+        protected string $pattern;
+        protected float $rate;
+        public function __construct(string $pattern, float $rate): void;
+        public function appliesTo(\Spatie\FlareClient\Enums\EntryPointType $entryPointType): bool;
+        public function getMatchedRate(\Spatie\FlareClient\EntryPoint\EntryPoint $entryPoint): ?float;
+    }
+    class DeferredClosureSamplingRule extends \Spatie\FlareClient\Sampling\SamplingRule implements \Spatie\FlareClient\Sampling\DeferredSamplerRule {
+        protected \Closure $closure;
+        /**
+        * @param \Closure $closure
+        * @generated
+        */
+        public function __construct(\Closure $closure): void;
+        public function appliesTo(\Spatie\FlareClient\Enums\EntryPointType $entryPointType): bool;
+        public function getMatchedRate(\Spatie\FlareClient\EntryPoint\EntryPoint $entryPoint): ?float;
+    }
+    class JobSamplingRule extends \Spatie\FlareClient\Sampling\SamplingRule {
+        protected string $pattern;
+        protected float $rate;
+        public function __construct(string $pattern, float $rate): void;
+        public function appliesTo(\Spatie\FlareClient\Enums\EntryPointType $entryPointType): bool;
+        public function getMatchedRate(\Spatie\FlareClient\EntryPoint\EntryPoint $entryPoint): ?float;
+    }
+    class PathSamplingRule extends \Spatie\FlareClient\Sampling\SamplingRule {
+        protected string $pattern;
+        protected float $rate;
+        public function __construct(string $pattern, float $rate): void;
+        public function appliesTo(\Spatie\FlareClient\Enums\EntryPointType $entryPointType): bool;
+        public function getMatchedRate(\Spatie\FlareClient\EntryPoint\EntryPoint $entryPoint): ?float;
+    }
+    class RouteSamplingRule extends \Spatie\FlareClient\Sampling\SamplingRule implements \Spatie\FlareClient\Sampling\DeferredSamplerRule {
+        protected string $pattern;
+        protected float $rate;
+        public function __construct(string $pattern, float $rate): void;
+        public function appliesTo(\Spatie\FlareClient\Enums\EntryPointType $entryPointType): bool;
+        public function getMatchedRate(\Spatie\FlareClient\EntryPoint\EntryPoint $entryPoint): ?float;
+    }
+    class UrlSamplingRule extends \Spatie\FlareClient\Sampling\SamplingRule {
+        protected string $pattern;
+        protected float $rate;
+        public function __construct(string $pattern, float $rate): void;
+        public function appliesTo(\Spatie\FlareClient\Enums\EntryPointType $entryPointType): bool;
+        public function getMatchedRate(\Spatie\FlareClient\EntryPoint\EntryPoint $entryPoint): ?float;
     }
 }
 namespace Spatie\FlareClient\Scopes {
@@ -1535,24 +1835,48 @@ namespace Spatie\FlareClient\Senders {
         protected int $timeout;
         protected array $config ?? [];
         public function __construct(array $config = []): void;
-        public function post(string $endpoint, string $apiToken, array $payload, \Spatie\FlareClient\Enums\FlarePayloadType $type, \Closure $callback): void;
+        public function post(string $endpoint, string $apiToken, array $payload, \Spatie\FlareClient\Enums\FlareEntityType $type, bool $test, \Closure $callback): void;
+        protected function executeCurl(\CurlHandle $curlHandle): string|bool;
         protected function getCurlHandle(string $fullUrl, array $headers = []): \CurlHandle;
+    }
+    class DaemonSender implements \Spatie\FlareClient\Senders\Sender {
+        protected string $daemonUrl;
+        protected int $timeout;
+        protected int $testTimeout;
+        protected array $config ?? [];
+        public function __construct(array $config = []): void;
+        public function post(string $endpoint, string $apiToken, array $payload, \Spatie\FlareClient\Enums\FlareEntityType $type, bool $test, \Closure $callback): void;
+        protected function sendToDaemon(\Spatie\FlareClient\Enums\FlareEntityType $type, string $apiToken, array $payload, bool $test, int $timeout): \Spatie\FlareClient\Senders\Support\Response;
+        protected function getCurlHandle(string $url, array $headers, int $timeout): \CurlHandle;
+        protected function createFallbackSender(): \Spatie\FlareClient\Senders\Sender;
+        /**
+        * @param \Closure $callback
+        * @generated
+        */
+        protected function fallbackToDirectDelivery(string $endpoint, string $apiToken, array $payload, \Spatie\FlareClient\Enums\FlareEntityType $type, \Closure $callback): void;
+        protected function logDaemonFailure(\Spatie\FlareClient\Enums\FlareEntityType $type, ?\Throwable $exception = null, ?\Spatie\FlareClient\Senders\Support\Response $response = null): void;
+        /**
+        * @param array<string, mixed> $context
+        * @generated
+        */
+        protected function logWarning(string $message, array<string, mixed> $context = []): void;
     }
     class GuzzleSender implements \Spatie\FlareClient\Senders\Sender {
         protected \GuzzleHttp\Client $client;
         protected array $config ?? [];
         public function __construct(array $config = []): void;
-        public function post(string $endpoint, string $apiToken, array $payload, \Spatie\FlareClient\Enums\FlarePayloadType $type, \Closure $callback): void;
+        public function post(string $endpoint, string $apiToken, array $payload, \Spatie\FlareClient\Enums\FlareEntityType $type, bool $test, \Closure $callback): void;
+        protected function executeRequest(string $endpoint, string $apiToken, array $payload): \Psr\Http\Message\ResponseInterface;
     }
     class NullSender implements \Spatie\FlareClient\Senders\Sender {
-        public function post(string $endpoint, string $apiToken, array $payload, \Spatie\FlareClient\Enums\FlarePayloadType $type, \Closure $callback): void;
+        public function post(string $endpoint, string $apiToken, array $payload, \Spatie\FlareClient\Enums\FlareEntityType $type, bool $test, \Closure $callback): void;
     }
     interface Sender {
         /**
         * @param \Closure $callback
         * @generated
         */
-        public function post(string $endpoint, string $apiToken, array $payload, \Spatie\FlareClient\Enums\FlarePayloadType $type, \Closure $callback): void;
+        public function post(string $endpoint, string $apiToken, array $payload, \Spatie\FlareClient\Enums\FlareEntityType $type, bool $test, \Closure $callback): void;
     }
 }
 namespace Spatie\FlareClient\Senders\Exceptions {
@@ -1637,6 +1961,7 @@ namespace Spatie\FlareClient\Spans {
     }
 }
 namespace Spatie\FlareClient\Support {
+    type ContainerAutowiringDefinition = array<string, array>;
     class BackTracer {
         protected ?string $applicationPath;
         public function __construct(?string $applicationPath): void;
@@ -1654,38 +1979,37 @@ namespace Spatie\FlareClient\Support {
         * @var array<string, array<string, mixed>>
         * @generated
         */
-        protected array<string, array<string, mixed>> $middlewares ?? [];
+        public array<string, array<string, mixed>> $middlewares ?? [];
         /**
         * @var array<string, array<string, mixed>>
         * @generated
         */
-        protected array<string, array<string, mixed>> $recorders ?? [];
-        /**
-        * @var array<string>
-        * @generated
-        */
-        protected array<string> $solutionProviders ?? [];
+        public array<string, array<string, mixed>> $recorders ?? [];
         /**
         * @var array<callable>
         * @generated
         */
-        protected array<callable> $resourceModifiers ?? [];
-        protected bool $collectErrorsWithTraces ?? false;
+        public array<callable> $resourceModifiers ?? [];
         /**
-        * @return array
+        * @var array|\Spatie\Backtrace\Arguments\ArgumentReducers
         * @generated
         */
-        public function execute(array $collects): array;
+        public array|\Spatie\Backtrace\Arguments\ArgumentReducers $argumentReducers ?? [];
+        public bool $collectStackFrameArguments ?? false;
+        public bool $forcePHPStackFrameArgumentsIniSetting ?? false;
+        public bool $collectErrorsWithTraces ?? false;
+        protected \Spatie\FlareClient\FlareConfig $config;
+        public function execute(\Spatie\FlareClient\FlareConfig $config): self;
         protected function handleUnknownCollectType(\Spatie\FlareClient\Contracts\FlareCollectType $type, array $options): void;
-        protected function application(): void;
         protected function errorsWithTraces(array $options): void;
         protected function requests(array $options): void;
         protected function console(array $options): void;
+        protected function jobs(array $options): void;
+        protected function context(array $options): void;
         protected function gitInfo(array $options): void;
         protected function cache(array $options): void;
         protected function glows(array $options): void;
-        protected function logs(array $options): void;
-        protected function solutions(array $solutions): void;
+        protected function logsWithErrors(array $options): void;
         protected function dumps(array $options): void;
         protected function queries(array $options): void;
         protected function transactions(array $options): void;
@@ -1708,27 +2032,37 @@ namespace Spatie\FlareClient\Support {
         */
         protected function addRecorder(?string $recorder, array $options = []): void;
         protected function only(array $options, array|string $keys): array;
+        /**
+        * @param array|bool|\Spatie\FlareClient\Enums\FlareEntityType $entityTypes
+        * @generated
+        */
+        protected function resolveChosenFlareEntityTypes(array|bool|\Spatie\FlareClient\Enums\FlareEntityType $entityTypes): array;
     }
+    /**
+    * @generated
+    */
     class Container implements \Psr\Container\ContainerInterface {
         protected array<string, callable> $definitions ?? [];
         protected array<string, callable> $singletons ?? [];
         protected array<string, T> $initializedSingletons ?? [];
+        protected array<string, \Spatie\FlareClient\Support\ContainerAutowiringDefinition> $autoWiringDefinitions ?? [];
         public static function instance(): self;
         /**
         * @template T
         * @param array<string, callable> $definitions
         * @param array<string, callable> $singletons
         * @param array<string, T> $initializedSingletons
+        * @param array<string, ContainerAutowiringDefinition> $autoWiringDefinitions
         * @generated
         */
-        protected function __construct<T>(array<string, callable> $definitions = [], array<string, callable> $singletons = [], array<string, T> $initializedSingletons = []): void;
+        protected function __construct<T>(array<string, callable> $definitions = [], array<string, callable> $singletons = [], array<string, T> $initializedSingletons = [], array<string, \Spatie\FlareClient\Support\ContainerAutowiringDefinition> $autoWiringDefinitions = []): void;
         /**
         * @template T
         * @param string $class
-        * @param null|string|\Closure $builder
+        * @param null|string|\Closure|array $builder
         * @generated
         */
-        public function singleton<T>(string $class, null|string|\Closure $builder = null): void;
+        public function singleton<T>(string $class, null|string|\Closure|array $builder = null): void;
         /**
         * @template T
         * @param string $class
@@ -1744,10 +2078,36 @@ namespace Spatie\FlareClient\Support {
         */
         public function get<T>(string $id): T;
         public function has(string $id): bool;
+        /**
+        * @template T
+        * @param string $id
+        * @param array<string, mixed> $parameters
+        * @return ?T
+        * @generated
+        */
+        public function resolve<T>(string $id, array<string, mixed> $parameters): ?T;
         public function reset(): void;
+        /**
+        * @template T
+        * @param string $id
+        * @param array<string, mixed> $providedParameters
+        * @return T|null
+        * @generated
+        */
+        protected function tryAutowiringDefinition<T>(string $id, array<string, mixed> $providedParameters = []): T|null;
+        /**
+        * @template T
+        * @param string $id
+        * @return ?ContainerAutowiringDefinition
+        * @generated
+        */
+        protected function resolveAutowiringDefinition<T>(string $id): ?\Spatie\FlareClient\Support\ContainerAutowiringDefinition;
     }
-    class GracefulSpanEnder {
-        public function shouldGracefullyEndSpan(\Spatie\FlareClient\Spans\Span $span): bool;
+    class FlareLogHandler extends \Monolog\Handler\AbstractProcessingHandler {
+        public const mixed DEFAULT_MONOLOG_LEVEL ?? \Monolog\Level::Debug;
+        protected \Spatie\FlareClient\Logger $logger;
+        public function __construct(\Spatie\FlareClient\Logger $logger, int|string|\Monolog\Level $level = self::DEFAULT_MONOLOG_LEVEL, bool $bubble = true): void;
+        protected function write(\Monolog\LogRecord $record): void;
     }
     class HostIpFetcher {
         public static function fetch(): ?string;
@@ -1770,6 +2130,55 @@ namespace Spatie\FlareClient\Support {
         * @generated
         */
         public function parseTraceparent(string $traceParent): ?array;
+        public function setTraceparentSampling(string $traceParent, bool $sampling): ?string;
+    }
+    class LargeAttributesTrimmer {
+        protected const int LEAF_BYTES ?? 4;
+        public function trim(\Spatie\FlareClient\Spans\Span|\Spatie\FlareClient\Spans\SpanEvent $entry, int $budgetInKb): void;
+        /**
+        * @param array<string, mixed> $attributes
+        * @return array
+        * @generated
+        */
+        protected function limit(array<string, mixed> $attributes, int $budget): array;
+        protected function walk(mixed $value, int &$remaining): bool;
+    }
+    class Lifecycle {
+        public readonly bool $usesSubtasks;
+        protected \Spatie\FlareClient\Spans\Span|\Spatie\FlareClient\Enums\AddSpanResult|null $applicationSpan ?? null;
+        protected \Spatie\FlareClient\Spans\Span|\Spatie\FlareClient\Enums\AddSpanResult|null $registeringSpan ?? null;
+        protected \Spatie\FlareClient\Spans\Span|\Spatie\FlareClient\Enums\AddSpanResult|null $bootingSpan ?? null;
+        protected \Spatie\FlareClient\Spans\Span|\Spatie\FlareClient\Enums\AddSpanResult|null $terminatingSpan ?? null;
+        protected \Spatie\FlareClient\Api $api;
+        protected \Spatie\FlareClient\Time\Time $time;
+        protected \Spatie\FlareClient\Memory\Memory $memory;
+        protected \Spatie\FlareClient\Logger $logger;
+        protected \Spatie\FlareClient\Tracer $tracer;
+        protected \Spatie\FlareClient\Support\Recorders $recorders;
+        protected \Spatie\FlareClient\Support\SentReports $sentReports;
+        protected resource $resource;
+        protected \Spatie\FlareClient\EntryPoint\EntryPointResolver $entryPointResolver;
+        protected \Spatie\FlareClient\Enums\LifecycleStage $stage ?? \Spatie\FlareClient\Enums\LifecycleStage::Idle;
+        protected ?\Closure $isUsingSubtasksClosure ?? null;
+        /**
+        * @param ?\Closure $isUsingSubtasksClosure
+        * @generated
+        */
+        public function __construct(\Spatie\FlareClient\Api $api, \Spatie\FlareClient\Time\Time $time, \Spatie\FlareClient\Memory\Memory $memory, \Spatie\FlareClient\Logger $logger, \Spatie\FlareClient\Tracer $tracer, \Spatie\FlareClient\Support\Recorders $recorders, \Spatie\FlareClient\Support\SentReports $sentReports, resource $resource, \Spatie\FlareClient\EntryPoint\EntryPointResolver $entryPointResolver, \Spatie\FlareClient\Enums\LifecycleStage $stage = \Spatie\FlareClient\Enums\LifecycleStage::Idle, ?\Closure $isUsingSubtasksClosure = null): void;
+        protected function isUsingSubtasks(): bool;
+        public function start(?int $timeUnixNano = null, array $attributes = [], ?string $traceparent = null): void;
+        public function register(?int $timeUnixNano = null, array $attributes = []): void;
+        public function registered(?int $timeUnixNano = null, array $additionalAttributes = []): void;
+        public function boot(?int $timeUnixNano = null, array $attributes = []): void;
+        public function booted(?int $timeUnixNano = null, array $additionalAttributes = []): void;
+        public function startSubtask(?string $traceparent = null): void;
+        public function endSubtask(): void;
+        public function terminating(?int $timeUnixNano = null, array $attributes = []): void;
+        public function terminated(?int $timeUnixNano = null, array $additionalTerminationAttributes = [], array $additionalApplicationAttributes = []): void;
+        protected function shutdown(): void;
+        public function trash(): void;
+        public function flush(): void;
+        public function getStage(): \Spatie\FlareClient\Enums\LifecycleStage;
     }
     class OpenTelemetryAttributeMapper {
         public function attributesToOpenTelemetry(array $attributes): array;
@@ -1777,9 +2186,44 @@ namespace Spatie\FlareClient\Support {
         public function attributesToPHP(array $attributes): array;
         public function valueToPHP(?array $value): mixed;
     }
+    class PatternMatcher {
+        public static function matches(string $value, string $pattern): bool;
+        /**
+        * @param array<int, string> $patterns
+        * @generated
+        */
+        public static function matchesAny(string $value, array<int, string> $patterns): bool;
+        public static function regex(string $value, string $pattern): bool;
+        /**
+        * @param array<int, string> $patterns
+        * @generated
+        */
+        public static function regexAny(string $value, array<int, string> $patterns): bool;
+    }
     class PhpStackFrameArgumentsFixer {
         public function enable(): void;
         protected function isCurrentlyIgnoringStackFrameArguments(): bool;
+    }
+    class Recorders {
+        /**
+        * @var array<mixed, \Spatie\FlareClient\Contracts\Recorders\Recorder>
+        * @generated
+        */
+        protected array<mixed, \Spatie\FlareClient\Contracts\Recorders\Recorder> $recorders ?? [];
+        protected array<string, array<string, mixed>> $recorderDefinitions;
+        /**
+        * @param array<string, array<string, mixed>> $recorderDefinitions
+        * @generated
+        */
+        public function __construct(array<string, array<string, mixed>> $recorderDefinitions): void;
+        public function boot(\Psr\Container\ContainerInterface $container): void;
+        /**
+        * @var class-string<Recorder> $recorderClass
+        * @generated
+        */
+        public function getRecorder(\Spatie\FlareClient\Enums\RecorderType|string $type): ?\Spatie\FlareClient\Contracts\Recorders\Recorder;
+        public function all(): array;
+        public function reset(): void;
     }
     class Redactor {
         protected bool $censorClientIps ?? false;
@@ -1807,16 +2251,16 @@ namespace Spatie\FlareClient\Support {
     }
     class SentReports {
         /**
-        * @var array<int, \Spatie\FlareClient\Report>
+        * @var array<int, array>
         * @generated
         */
-        protected array<int, \Spatie\FlareClient\Report> $reports ?? [];
-        public function add(\Spatie\FlareClient\Report $report): self;
+        protected array<int, array> $reports ?? [];
+        public function add(array $report): self;
         /**
-        * @return array<int, \Spatie\FlareClient\Report>
+        * @return array<int, array>
         * @generated
         */
-        public function all(): array<int, \Spatie\FlareClient\Report>;
+        public function all(): array<int, array>;
         /**
         * @return array<int, string>
         * @generated
@@ -1831,6 +2275,10 @@ namespace Spatie\FlareClient\Support {
         public function latestUrl(): ?string;
         public function clear(): void;
     }
+    class SeverityMapper {
+        public static function fromSyslog(string $level): int;
+        public static function fromMonolog(\Monolog\Level $level): int;
+    }
     class StacktraceMapper {
         /**
         * @param array<\Spatie\Backtrace\Frame> $frames
@@ -1838,17 +2286,102 @@ namespace Spatie\FlareClient\Support {
         * @generated
         */
         public function map(array<\Spatie\Backtrace\Frame> $frames, ?\Throwable $throwable): array<array>;
-        protected function cleanupStackTraceForError(array $frames, \Throwable $throwable): array;
+        /**
+        * @param array<\Spatie\Backtrace\Frame> $frames
+        * @return array<\Spatie\Backtrace\Frame>
+        * @generated
+        */
+        protected function cleanupStackTraceForError(array<\Spatie\Backtrace\Frame> $frames, \Throwable $throwable): array<\Spatie\Backtrace\Frame>;
         /**
         * @return array
         * @generated
         */
         protected function mapFrame(\Spatie\Backtrace\Frame $frame): array;
     }
+    class SymfonyTester extends \Spatie\FlareClient\Support\Tester {
+        protected \Symfony\Component\Console\Style\SymfonyStyle $io;
+        protected \Symfony\Component\Console\Input\InputInterface $input;
+        protected \Symfony\Component\Console\Output\OutputInterface $output;
+        public function __construct(\Spatie\FlareClient\Api $api, \Spatie\FlareClient\Support\Ids $ids, \Spatie\FlareClient\Time\Time $time, \Spatie\FlareClient\Memory\Memory $memory, resource $resource, \Spatie\FlareClient\ReportFactory $reportFactory, \Spatie\FlareClient\FlareConfig $config, \Symfony\Component\Console\Input\InputInterface $input, \Symfony\Component\Console\Output\OutputInterface $output): void;
+        /**
+        * @return array<int, \Spatie\FlareClient\Enums\FlareEntityType>
+        * @generated
+        */
+        protected function testEntityTypes(): array<int, \Spatie\FlareClient\Enums\FlareEntityType>;
+        protected function writeLine(string $message, string $style = self::STYLE_PLAIN): void;
+        protected function writeNewline(): void;
+        /**
+        * @return array<string, mixed>
+        * @generated
+        */
+        protected function debugSections(): array<string, mixed>;
+        protected function buildEntryPoint(): \Spatie\FlareClient\EntryPoint\EntryPoint;
+    }
     class Telemetry {
         public const string NAME ?? 'spatie/flare-client-php';
         public static function getName(): string;
         public static function getVersion(): string;
+    }
+    abstract class Tester {
+        public const string STYLE_PLAIN ?? 'plain';
+        public const string STYLE_INFO ?? 'info';
+        public const string STYLE_WARNING ?? 'warning';
+        public const string STYLE_ERROR ?? 'error';
+        protected \Spatie\FlareClient\Api $api;
+        protected \Spatie\FlareClient\Support\Ids $ids;
+        protected \Spatie\FlareClient\Time\Time $time;
+        protected \Spatie\FlareClient\Memory\Memory $memory;
+        protected resource $resource;
+        protected \Spatie\FlareClient\ReportFactory $reportFactory;
+        protected \Spatie\FlareClient\FlareConfig $config;
+        public function __construct(\Spatie\FlareClient\Api $api, \Spatie\FlareClient\Support\Ids $ids, \Spatie\FlareClient\Time\Time $time, \Spatie\FlareClient\Memory\Memory $memory, resource $resource, \Spatie\FlareClient\ReportFactory $reportFactory, \Spatie\FlareClient\FlareConfig $config): void;
+        protected abstract function writeLine(string $message, string $style = self::STYLE_PLAIN): void;
+        protected abstract function writeNewline(): void;
+        public function run(bool $debug = false): bool;
+        protected function runTests(): bool;
+        protected function sendErrorPayload(): void;
+        protected function sendTracePayload(): void;
+        protected function sendLogPayload(): void;
+        /**
+        * @return array<int, \Spatie\FlareClient\Enums\FlareEntityType>
+        * @generated
+        */
+        protected function testEntityTypes(): array<int, \Spatie\FlareClient\Enums\FlareEntityType>;
+        protected function preCheckEntity(\Spatie\FlareClient\Enums\FlareEntityType $type): bool;
+        protected function warnAboutEntity(\Spatie\FlareClient\Enums\FlareEntityType $type): void;
+        protected function isEntityEnabled(\Spatie\FlareClient\Enums\FlareEntityType $type): bool;
+        protected function stackFrameArgumentsEnabled(): bool;
+        protected function shouldWarnAboutStackFrameArgumentsIniSetting(bool $stackFrameArgumentsEnabled): bool;
+        protected function entityDisabledMessage(\Spatie\FlareClient\Enums\FlareEntityType $entityType): string;
+        protected function sendTestPayload(\Spatie\FlareClient\Enums\FlareEntityType $entityType): bool;
+        protected function buildThrowable(): \Throwable;
+        /**
+        * @return array<int, \Spatie\FlareClient\Spans\Span>
+        * @generated
+        */
+        protected function buildTestTrace(): array<int, \Spatie\FlareClient\Spans\Span>;
+        /**
+        * @return array<int, array>
+        * @generated
+        */
+        protected function buildLog(): array<int, array>;
+        /**
+        * @return array<int, array>
+        * @generated
+        */
+        protected function environmentInfo(): array<int, array>;
+        /**
+        * @return array<string, mixed>
+        * @generated
+        */
+        protected function debugSections(): array<string, mixed>;
+        protected function writeDebugSections(): void;
+        protected function writeEnvironmentInfo(): void;
+        protected function describeBadResponse(\Spatie\FlareClient\Senders\Exceptions\BadResponseCode $exception): string;
+        protected function getTestTracer(): \Spatie\FlareClient\Tracer;
+        protected function getTestEntryPointResolver(): \Spatie\FlareClient\EntryPoint\EntryPointResolver;
+        protected abstract function buildEntryPoint(): \Spatie\FlareClient\EntryPoint\EntryPoint;
+        protected function getTestLogger(): \Spatie\FlareClient\Logger;
     }
     class TimeInterval {
         /**
@@ -1859,13 +2392,6 @@ namespace Spatie\FlareClient\Support {
     }
     class TraceId {
         public static function generate(): string;
-    }
-    class TraceLimits {
-        public int $maxSpans ?? 512;
-        public int $maxAttributesPerSpan ?? 128;
-        public int $maxSpanEventsPerSpan ?? 128;
-        public int $maxAttributesPerSpanEvent ?? 128;
-        public function __construct(int $maxSpans = 512, int $maxAttributesPerSpan = 128, int $maxSpanEventsPerSpan = 128, int $maxAttributesPerSpanEvent = 128): void;
     }
 }
 namespace Spatie\FlareClient\Support\Exceptions {
@@ -1892,38 +2418,6 @@ namespace Spatie\FlareClient\Time {
         public static function phpMicroTime(int|float $microtime): int;
         public static function dateTimeToNano(\DateTimeInterface $dateTime): int;
         public static function now(): int;
-    }
-}
-namespace Spatie\FlareClient\TraceExporters {
-    class OpenTelemetryJsonTraceExporter implements \Spatie\FlareClient\TraceExporters\TraceExporter {
-        protected \Spatie\FlareClient\Support\OpenTelemetryAttributeMapper $attributeMapper;
-        public function __construct(\Spatie\FlareClient\Support\OpenTelemetryAttributeMapper $attributeMapper = null): void;
-        /**
-        * @param array<string, array<string, \Spatie\FlareClient\Spans\Span>> $traces
-        * @generated
-        */
-        public function export(resource $resource, \Spatie\FlareClient\Scopes\Scope $scope, array<string, array<string, \Spatie\FlareClient\Spans\Span>> $traces): array;
-        protected function exportResource(resource $resource): array;
-        /**
-        * @return array
-        * @generated
-        */
-        protected function exportScope(\Spatie\FlareClient\Scopes\Scope $scope): array;
-        protected function exportSpan(\Spatie\FlareClient\Spans\Span $span): array;
-        /**
-        * @param \Spatie\FlareClient\Spans\SpanEvent $spanEvent
-        * @return array
-        * @generated
-        */
-        protected function exportSpanEvent(\Spatie\FlareClient\Spans\SpanEvent $spanEvent): array;
-    }
-    interface TraceExporter {
-        /**
-        * @param array<string, array<string, \Spatie\FlareClient\Spans\Span>> $traces
-        * @return array<mixed>
-        * @generated
-        */
-        public function export(resource $resource, \Spatie\FlareClient\Scopes\Scope $scope, array<string, array<string, \Spatie\FlareClient\Spans\Span>> $traces): array<mixed>;
     }
 }
 namespace Spatie\FlareClient\Truncation {
@@ -1974,6 +2468,9 @@ namespace Spatie\FlareClient\Truncation {
         */
         protected function iterateAttributes(array<int|string, mixed> $attributes, int $threshold): array<int|string, mixed>;
         protected function trimAttributes(mixed &$value, mixed $key, int $threshold): mixed;
+    }
+    class TrimPreviousStrategy extends \Spatie\FlareClient\Truncation\AbstractTruncationStrategy {
+        public function execute(array $payload): array;
     }
     class TrimStackFrameArgumentsStrategy implements \Spatie\FlareClient\Truncation\TruncationStrategy {
         public function execute(array $payload): array;
